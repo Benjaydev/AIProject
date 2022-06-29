@@ -1,11 +1,15 @@
 #include "Pathfinding.h"
 #include <iostream>
 #include <algorithm> 
-
 // NODE
 void Pathfinding::Node::ConnectTo(Node* other, float cost)
 {
     connections.push_back(Edge(other, cost));
+}
+
+Vector2 Pathfinding::Node::WorldPosition()
+{
+    return { (position.x + 0.5f) * parent->m_cellSize, (position.y + 0.5f) * parent->m_cellSize };
 }
 
 // NODEGRAPH
@@ -13,7 +17,7 @@ void Pathfinding::NodeGraph::Initialise(std::vector<std::string> asciiMap, int c
 {
     m_cellSize = cellSize;
     const char emptySquare = '0';
-
+     
     // assume all strings are the same length, so we'll size the map according
     // to the number of strings and the length of the first one
     m_height = asciiMap.size();
@@ -36,7 +40,7 @@ void Pathfinding::NodeGraph::Initialise(std::vector<std::string> asciiMap, int c
             char tile = x < line.size() ? line[x] : emptySquare;
 
             // create a node for anything but a '.' character
-            m_nodes[x + m_width * y] = tile == emptySquare ? nullptr : new Node(x, y);
+            m_nodes[x + m_width * y] = tile == emptySquare ? nullptr : new Node(x, y, this);
         }
     }
 
@@ -74,13 +78,6 @@ void Pathfinding::NodeGraph::Initialise(std::vector<std::string> asciiMap, int c
 
 void Pathfinding::NodeGraph::Draw()
 {
-    // red color for the blocks
-    Color cellColor;
-    cellColor.a = 255;
-    cellColor.r = 255;
-    cellColor.g = 0;
-    cellColor.b = 0;
-
     for (int y = 0; y < m_height; y++)
     {
         for (int x = 0; x < m_width; x++)
@@ -90,7 +87,7 @@ void Pathfinding::NodeGraph::Draw()
             {
                 // draw a solid block in empty squares without a navigation node
                 DrawRectangle((int)(x * m_cellSize), (int)(y * m_cellSize),
-                    (int)m_cellSize - 1, (int)m_cellSize - 1, cellColor);
+                    (int)m_cellSize - 1, (int)m_cellSize - 1, DARKGRAY);
             }
             else
             {
@@ -98,7 +95,7 @@ void Pathfinding::NodeGraph::Draw()
                 for (int i = 0; i < node->connections.size(); i++)
                 {
                     Node* other = node->connections[i].target;
-                    DrawLine((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, (other->position.x + 0.5f) * m_cellSize, (other->position.y + 0.5f) * m_cellSize, BLACK);
+                    DrawLine((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, (other->position.x + 0.5f) * m_cellSize, (other->position.y + 0.5f) * m_cellSize, BLUE);
                 }
             }
         }
@@ -107,11 +104,17 @@ void Pathfinding::NodeGraph::Draw()
 
 void Pathfinding::NodeGraph::DrawPath(Pathfinding::Path path, Color lineColor)
 {
+    if (path.size() == 0) {
+        return;
+    }
+
     // Draw each point in path
     for (int i = 1; i < path.size(); i++)
     {
-        DrawLineEx({ (path.waypoints[i]->position.x + 0.5f) * m_cellSize, (path.waypoints[i]->position.y + 0.5f) * m_cellSize }, { (path.waypoints[i - 1]->position.x + 0.5f) * m_cellSize, (path.waypoints[i - 1]->position.y + 0.5f) * m_cellSize }, 15, PURPLE);
+        DrawLineEx({ (path.waypoints[i]->position.x + 0.5f) * m_cellSize, (path.waypoints[i]->position.y + 0.5f) * m_cellSize }, { (path.waypoints[i - 1]->position.x + 0.5f) * m_cellSize, (path.waypoints[i - 1]->position.y + 0.5f) * m_cellSize }, 15, GREEN);
     }
+    DrawCircle((path.waypoints[0]->position.x + 0.5f)* m_cellSize, (path.waypoints[0]->position.y + 0.5f)* m_cellSize, 15, PURPLE);
+    DrawCircle((path.waypoints.back()->position.x + 0.5f)* m_cellSize, (path.waypoints.back()->position.y + 0.5f)* m_cellSize, 15, RED);
 }
 
 Pathfinding::Node* Pathfinding::NodeGraph::GetClosestNode(Vector2 worldPos)
@@ -132,7 +135,7 @@ Pathfinding::Node* Pathfinding::NodeGraph::GetClosestNode(Vector2 worldPos)
 
 
 
-Pathfinding::Path Pathfinding::NodeGraph::DijkstrasGenerate(Node* startNode, Node* endNode)
+Pathfinding::Path Pathfinding::DijkstrasGenerate(Node* startNode, Node* endNode)
 {
     if (startNode == nullptr || endNode == nullptr) {
         std::cout << "Error creating path. One or both of the supplied nodes are null." << std::endl;
@@ -200,3 +203,52 @@ Pathfinding::Path Pathfinding::NodeGraph::DijkstrasGenerate(Node* startNode, Nod
 }
 
 
+// PATH AGENT
+void Pathfinding::PathAgent::Update(float deltaTime)
+{
+    if (m_path.empty()) {
+        return;
+    }
+
+    Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex+1]->WorldPosition(), m_path.waypoints[m_currentIndex]->WorldPosition());
+    float dist = Vector2DotProduct(diff, diff);
+    float travelDist = m_speed * deltaTime;
+
+    float movementDist = dist - (travelDist * travelDist);
+
+    
+    
+    // Just move
+    if (movementDist > 0) {
+        m_position = Vector2Add(m_position, Vector2MultiplyV(Vector2Normalize(diff), { travelDist, travelDist }));
+    }
+    else {
+        m_currentIndex++;
+
+        // Path is finished
+        if (m_currentIndex == m_path.size()-1) {
+            m_position = m_path.waypoints[m_currentIndex]->WorldPosition();
+            m_path.setEmpty();
+        }
+        else {
+            // Find new direction to the node that was just found
+            Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex]->WorldPosition(), m_path.waypoints[m_currentIndex-1]->WorldPosition());
+            // Go towards that node by however much the last node was overshot by
+            float overshotDistance = sqrt(movementDist);
+            m_position = Vector2Add(m_position, Vector2MultiplyV(Vector2Normalize(diff), { overshotDistance, overshotDistance }));
+        }
+    }
+
+}
+
+void Pathfinding::PathAgent::GoToNode(Node* node)
+{
+    m_position = m_currentNode->WorldPosition();
+    m_path = DijkstrasGenerate(m_currentNode, node);
+    m_currentIndex = 0;
+}
+
+void Pathfinding::PathAgent::Draw()
+{
+    DrawCircle((int)m_position.x, (int)m_position.y, 8, { 255,255,0,255 });
+}

@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Pathfinding.h"
+#include "Timer.h"
 using namespace Pathfinding;
 
 std::vector<Object*> Game::objects = std::vector<Object*>();
@@ -30,29 +31,50 @@ void Game::Start()
     NodeGraph graph = NodeGraph();
     graph.Initialise(asciiMap, 100);
 
-    Path graphPath = graph.DijkstrasGenerate(graph.GetNode(1, 1), graph.GetNode(10, 6));
+    Path graphPath = DijkstrasGenerate(graph.GetNode(1, 1), graph.GetNode(10, 6));
 
     Node* start = graph.GetNode(1, 1);
     Node* end = graph.GetNode(10, 6);
-    while (!WindowShouldClose()) {
 
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {
-            Vector2 mousePos = GetMousePosition();
-            start = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
-        }
-        if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
-        {
-            Vector2 mousePos = GetMousePosition();
-            end = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
-        }
-        graphPath = graph.DijkstrasGenerate(start, end);
+    PathAgent agent;
+    agent.SetPath(graphPath);
+    agent.SetSpeed(200);
+
+
+    Timer timer;
+
+    while (!WindowShouldClose()) {
+        DeltaTime = timer.RecordNewTime();
+        //if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        //{
+        //    Vector2 mousePos = GetMousePosition();
+        //    Node* check = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
+        //    start = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
+        //}
+        //if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
+        //{
+        //    Vector2 mousePos = GetMousePosition();
+        //    end = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
+        //}
+        //graphPath = DijkstrasGenerate(start, end);
+
+        
 
         BeginDrawing();
         ClearBackground(WHITE);
 
         graph.Draw();
-        graph.DrawPath(graphPath, PURPLE);
+        graph.DrawPath(agent.GetPath(), PURPLE);
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+            Vector2 mousePos = GetMousePosition();
+            Node* check = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
+            agent.GoToNode(end);
+        }
+
+        agent.Update(DeltaTime);
+        agent.Draw();
 
         EndDrawing();
     }

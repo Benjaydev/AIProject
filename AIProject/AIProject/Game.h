@@ -13,6 +13,8 @@ public:
 	void Update();
 	void Draw();
 
+	float DeltaTime;
+
 
 	static std::vector<Object*> objects;
 
