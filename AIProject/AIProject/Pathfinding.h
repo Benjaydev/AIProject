@@ -97,8 +97,10 @@ namespace Pathfinding
          Path m_path;
          int m_currentIndex;
          Node* m_currentNode;
-
          float m_speed;
+
+         bool isFinished = true;
+
 
      public:
          void Update(float deltaTime);
@@ -109,8 +111,16 @@ namespace Pathfinding
          }
          Path GetPath() { return m_path; }
          void SetPath(Path path) {
+             if (path.empty()) {
+                 m_path = path;
+                 m_currentIndex = 0;
+                 isFinished = true;
+                 return;
+             }
              m_path = path;
              m_position = m_path.waypoints[0]->WorldPosition();
+             m_currentIndex = 0;
+             isFinished = false;
          }
 
      };

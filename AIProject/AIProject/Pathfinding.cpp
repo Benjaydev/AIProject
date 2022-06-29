@@ -203,22 +203,23 @@ Pathfinding::Path Pathfinding::DijkstrasGenerate(Node* startNode, Node* endNode)
 }
 
 
+
+
+
+
 // PATH AGENT
 void Pathfinding::PathAgent::Update(float deltaTime)
 {
-    if (m_path.empty()) {
+    if (isFinished) {
         return;
     }
 
-    Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex+1]->WorldPosition(), m_path.waypoints[m_currentIndex]->WorldPosition());
+    Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex+1]->WorldPosition(), m_position);
     float dist = Vector2DotProduct(diff, diff);
     float travelDist = m_speed * deltaTime;
 
     float movementDist = dist - (travelDist * travelDist);
 
-    
-    
-    // Just move
     if (movementDist > 0) {
         m_position = Vector2Add(m_position, Vector2MultiplyV(Vector2Normalize(diff), { travelDist, travelDist }));
     }
@@ -229,12 +230,13 @@ void Pathfinding::PathAgent::Update(float deltaTime)
         if (m_currentIndex == m_path.size()-1) {
             m_position = m_path.waypoints[m_currentIndex]->WorldPosition();
             m_path.setEmpty();
+            isFinished = true;
         }
         else {
             // Find new direction to the node that was just found
             Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex]->WorldPosition(), m_path.waypoints[m_currentIndex-1]->WorldPosition());
             // Go towards that node by however much the last node was overshot by
-            float overshotDistance = sqrt(movementDist);
+            float overshotDistance = movementDist == 0 ? 0 : sqrt(-movementDist);
             m_position = Vector2Add(m_position, Vector2MultiplyV(Vector2Normalize(diff), { overshotDistance, overshotDistance }));
         }
     }
@@ -243,9 +245,12 @@ void Pathfinding::PathAgent::Update(float deltaTime)
 
 void Pathfinding::PathAgent::GoToNode(Node* node)
 {
-    m_position = m_currentNode->WorldPosition();
+    // Find the start of the path that the node is on
+    m_currentNode = node->parent->GetClosestNode(m_position);
+    
     m_path = DijkstrasGenerate(m_currentNode, node);
     m_currentIndex = 0;
+    isFinished = false;
 }
 
 void Pathfinding::PathAgent::Draw()

@@ -43,21 +43,32 @@ void Game::Start()
 
     Timer timer;
 
+    bool started = false;
+
     while (!WindowShouldClose()) {
         DeltaTime = timer.RecordNewTime();
-        //if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        //{
-        //    Vector2 mousePos = GetMousePosition();
-        //    Node* check = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
-        //    start = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
-        //}
-        //if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
-        //{
-        //    Vector2 mousePos = GetMousePosition();
-        //    end = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
-        //}
-        //graphPath = DijkstrasGenerate(start, end);
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+           Vector2 mousePos = GetMousePosition();
+           start = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
+           if (start != nullptr) {
+               graphPath = DijkstrasGenerate(start, end);
+               agent.SetPath(graphPath);
+               started = false;
+           }
+        }
+        if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
+        {
+            Vector2 mousePos = GetMousePosition();
+            end = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
 
+            if (end != nullptr) {
+                graphPath = DijkstrasGenerate(start, end);
+                agent.SetPath(graphPath);
+                started = false;
+            }
+        }
+        
         
 
         BeginDrawing();
@@ -66,14 +77,13 @@ void Game::Start()
         graph.Draw();
         graph.DrawPath(agent.GetPath(), PURPLE);
 
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {
-            Vector2 mousePos = GetMousePosition();
-            Node* check = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
-            agent.GoToNode(end);
+        if (IsKeyPressed(KEY_SPACE)) {
+            started = !started;
         }
-
-        agent.Update(DeltaTime);
+        if (started) {
+            agent.Update(DeltaTime);
+        }
+        
         agent.Draw();
 
         EndDrawing();
