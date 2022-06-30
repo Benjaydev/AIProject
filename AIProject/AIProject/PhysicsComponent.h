@@ -49,6 +49,9 @@ public:
 	void Move(float DeltaTime);
 
 	void SetPosition(float x, float y);
+	Vector2 GetPosition() {
+		return { globalTransform.m8, globalTransform.m9 };
+	}
 	void SetPosition(Vector2 v);
 	void SetRotation(float zRad);
 	void Rotate(float rad);

@@ -102,6 +102,10 @@ public:
 	Vector2 center;
 	float radius;
 
+	void SetDiameter(float d) {
+		radius = d / 2;
+	}
+
 	void DrawDebug() override;
 
 	void Fit(std::vector<Vector3> points);

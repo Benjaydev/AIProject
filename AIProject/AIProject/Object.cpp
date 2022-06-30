@@ -198,10 +198,10 @@ void Object::Draw()
 		}
 	}
 	
-	/*
+	
 	// Debug mode show collider bounds
-	if (physics->collider != nullptr && Environment::DebugActive) {
+	if (physics->collider != nullptr && Game::DebugActive) {
 		physics->collider->DrawDebug();
-	}*/
+	}
 	
 }
