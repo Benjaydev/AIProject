@@ -22,7 +22,7 @@ void Game::Start()
 
     InitWindow(screenWidth, screenHeight, "AI Project");
 
-    UIPanel* testObject = new UIPanel(200, 100, 165, 800, 0x000000FF);
+    UIPanel* testObject = new UIPanel(200, 100, 165, 800, 0xFFFFFFFF);
     testObject->tag = "Obstacle";
     testObject->physics->SetCollider(cType::Rectangle);
     Vector2 pos = testObject->physics->GetPosition();
@@ -31,34 +31,16 @@ void Game::Start()
     testObject->AddToGameWorld();
 
 
-    //RayCollider* newRay = new RayCollider({ 0,0 }, { 0.5,0.5 }, 500);
-    //Hit out;
-    //if (newRay->Overlaps(testObject->physics->collider, out)) {
     //    std::cout << "hi" << std::endl;
-    //}
 
 
     nodeGraph = NodeGraph();
     int cellSize = 50;
     nodeGraph.GenerateGrid(screenWidth/cellSize, screenHeight/cellSize, cellSize, "Obstacle", 0.8);
 
-    /*
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-            AIObject* testAI = new AIObject();
-            testAI->physics->SetPosition({ 600 + (100.0f*j), (175.0f * i)});
-            testAI->AIAgent->SetSpeed(200);
-            testAI->AIAgent->GoToNode(nodeGraph.GetNode(1, 15));
-        }
-    }*/
     
-
-
-
-
     Timer timer;
 
-    bool started = false;
     
 
     AIObject* testAI = new AIObject();
@@ -68,28 +50,7 @@ void Game::Start()
 
     while (!WindowShouldClose()) {
         DeltaTime = timer.RecordNewTime();
-        //if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        //{
-        //   Vector2 mousePos = GetMousePosition();
-        //   start = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
-        //   if (start != nullptr) {
-        //       graphPath = AStarGenerate(start, end, Pathfinding::SqrDistanceHeuristic);
-        //       //agent.SetPath(graphPath);
-        //       started = false;
-        //   }
-        //}
-        //if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
-        //{
-        //    Vector2 mousePos = GetMousePosition();
-        //    end = graph.GetClosestNode(Vector2({ mousePos.x, mousePos.y }));
 
-        //    if (end != nullptr) {
-        //        graphPath = AStarGenerate(start, end, Pathfinding::SqrDistanceHeuristic);
-        //        //agent.SetPath(graphPath);
-        //        started = false;
-        //    }
-        //}
-        
         if (IsKeyPressed(KEY_SPACE)) {
             testAI->AIAgent->GoToNode(nodeGraph.GetNode(rand() % ((screenWidth / cellSize)-1) + 1, rand() % ((screenHeight / cellSize)-1) + 1));
         }
@@ -129,7 +90,7 @@ void Game::Update() {
 
 void Game::Draw() {
     BeginDrawing();
-    ClearBackground(WHITE);
+    ClearBackground(BLACK);
     DrawFPS(0, 0);
     
     for (int i = 0; i < objects.size(); i++) {

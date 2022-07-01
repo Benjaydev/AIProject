@@ -171,20 +171,29 @@ Path Pathfinding::PostPathSmooth(Path path)
         return path;
     }
 
+    // Search each node starting from the second
     for (int i = 1; i < path.size()-1; i++) {
+        // Check each collidable object
         for (int j = 0; j < collideObjects.size(); j++) {
+            // Find difference between the starting node (k) and the node being checked (i+1)
             Vector2 diff = Vector2Subtract(path.waypoints[i + 1]->WorldPosition(), newPath.waypoints[k]->WorldPosition());
 
+            // Create ray collider from start to check node
             RayCollider* ray = new RayCollider(newPath.waypoints[k]->WorldPosition(), Vector2Normalize(diff), Vector2Length(diff));
             Hit out;
            
+            // If there is a collision
             if (ray->Overlaps(collideObjects[j]->physics->collider, out)) {
+                // Increase the starting node
                 k++;
+                // Add the node before the check node (Because k cannot reach i+1, so it must keep i)
                 newPath.waypoints.push_back(path.waypoints[i]);
             }
+            delete ray;
+            // No collision, so start node stays at same place, and the next node will be checked
         }
     }
-    k++;
+    // Add final node
     newPath.waypoints.push_back(path.waypoints[path.size()-1]);
     return newPath;
 }
@@ -267,6 +276,9 @@ void Pathfinding::NodeGraph::GenerateGrid(int width, int height, int cellSize, s
     {
         for (int x = 0; x < m_width; x++)
         {
+            if (x == m_width-1) {
+                std::cout << "hi" << std::endl;
+            }
             Node* node = GetNode(x, y);
             if (node)
             {
@@ -286,26 +298,31 @@ void Pathfinding::NodeGraph::GenerateGrid(int width, int height, int cellSize, s
                     nodeNorth->ConnectTo(node, D);
                 }
 
-                
-                Node* nodeNorthEast = GetNode(x+1, y-1);
-                Node* nodeNorthWest = GetNode(x-1, y-1);
-                
-                // Diagonals
-                // North east
-                if (nodeNorthEast) {
-                    //node->ConnectTo(nodeNorthEast, D2);
-                    //nodeNorthEast->ConnectTo(node, D2);
+                if (canUseDiagonals) {
+                    Node* nodeNorthEast = GetNode(x + 1, y - 1);
+                    Node* nodeNorthWest = GetNode(x - 1, y - 1);
+
+                    // Diagonals
+                    // North east
+                    if (nodeNorthEast) {
+                        node->ConnectTo(nodeNorthEast, D2);
+                        nodeNorthEast->ConnectTo(node, D2);
+                    }
+
+                    // North west
+                    if (nodeNorthWest) {
+                        node->ConnectTo(nodeNorthWest, D2);
+                        nodeNorthWest->ConnectTo(node, D2);
+                    }
                 }
-                
-                // North west
-                if (nodeNorthWest) {
-                    //node->ConnectTo(nodeNorthWest, D2);
-                    //nodeNorthWest->ConnectTo(node, D2);
-                }
+               
 
             }
         }
     }
+    std::cout << "hi" << std::endl;
+
+
 }
 void Pathfinding::NodeGraph::Draw()
 {
@@ -392,6 +409,10 @@ void Pathfinding::PathAgent::Update(float deltaTime)
 }
 void Pathfinding::PathAgent::GoToNode(Node* target)
 {
+    if (target == nullptr) {
+        return;
+    }
+
     // Find the start of the path that the node is on
     m_currentNode = target->parent->GetClosestNode(ownerPhysics->GetPosition());
     if (m_currentNode != nullptr) {

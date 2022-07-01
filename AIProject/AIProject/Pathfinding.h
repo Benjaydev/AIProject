@@ -109,13 +109,14 @@ namespace Pathfinding
 
         std::string obstacleTag = "";
 
-        //void Initialise(std::vector<std::string> asciiMap, int cellSize);
+        bool canUseDiagonals = false;
+
         void GenerateGrid(int width, int height, int cellSize, std::string collideTag = "Obstacle", float collideSize = 0.9f);
 
         void Draw();
         void DrawPath(Path path, Color lineColor);
         Node* GetNode(int x, int y) { 
-            if (x < 0 || x > m_width || y < 0 || y > m_height) {
+            if (x < 0 || x == m_width || y < 0 || y == m_height) {
                 return nullptr;
             }
             return m_nodes[x + m_width * y];
