@@ -4,10 +4,14 @@
 #include <string>
 #include <iostream>
 #include <functional>
-#include "PhysicsComponent.h"
+#include "Object.h"
+
 
 namespace Pathfinding
 {
+    static float D2 = sqrt(2);
+    static float D = 1;
+
     struct Node;
     class NodeGraph;
 
@@ -36,6 +40,7 @@ namespace Pathfinding
 
         Vector2 position;
         std::vector<Edge> connections;
+        
 
         float gScore;
         float fScore;
@@ -102,6 +107,8 @@ namespace Pathfinding
 
         Node** m_nodes;
 
+        std::string obstacleTag = "";
+
         //void Initialise(std::vector<std::string> asciiMap, int cellSize);
         void GenerateGrid(int width, int height, int cellSize, std::string collideTag = "Obstacle", float collideSize = 0.9f);
 
@@ -122,22 +129,31 @@ namespace Pathfinding
         return Vector2DotProduct(diff, diff);
     }
     static float DistanceHeuristic(Node* node, Node* end) {
-        float x = pow(end->position.x - node->position.x, 2.0);
-        float y = pow(end->position.y - node->position.y, 2.0);
-
-        return std::sqrtf(x + y);
+        return Vector2Distance(end->position, node->position);
+    }
+    static float ManhattenDistance(Node* node, Node* end) {
+        float absx = abs(node->position.x - end->position.x);
+        float absy = abs(node->position.y - end->position.y);
+        return absx + absy;
+    }
+    static float DiagonalDistance(Node* node, Node* end) {
+        float absx = abs(node->position.x - end->position.x);
+        float absy = abs(node->position.y - end->position.y);
+        return D * fmaxf(absx, absy) + (D2 - D) * fminf(absx, absy);
     }
 
     static float NoHeuristic(Node* node, Node* end) {
         return 0;
     }
 
-    static float(*DefaultHeuristic)(Node*, Node*) = SqrDistanceHeuristic;
+    static float(*DefaultHeuristic)(Node*, Node*) = DiagonalDistance;
 
 
      Path DijkstrasGenerate(Node* startNode, Node* endNode);
      Path AStarGenerate(Node* startNode, Node* endNode, float (*heuristic)(Node*,Node*) = DefaultHeuristic);
         
+     Path PostPathSmooth(Path path);
+
      
 
 
@@ -149,7 +165,8 @@ class PathAgent {
          Node* m_currentNode;
          float m_speed;
 
-         bool isFinished = true;
+         bool hasFinishedPath = true;
+         bool currentlyGeneratingPath = false;
 
 
      public:
@@ -163,6 +180,10 @@ class PathAgent {
 
          void Update(float DeltaTime);
          void GoToNode(Node* target);
+         void GeneratePathThreaded(Node*& startNode, Node*& endNode);
+         void GenerationThread(Node*& startNode, Node*& endNode, std::function<void(Path)> callbackFunction);
+         void GenerationThreadFinished(Path path);
+
          void Draw();
          void DrawPath();
          float GetParentCellSize() {

@@ -22,13 +22,20 @@ void Game::Start()
 
     InitWindow(screenWidth, screenHeight, "AI Project");
 
-    UIPanel* testObject = new UIPanel(200, 100, 165, 700, 0x000000FF);
+    UIPanel* testObject = new UIPanel(200, 100, 165, 800, 0x000000FF);
     testObject->tag = "Obstacle";
     testObject->physics->SetCollider(cType::Rectangle);
     Vector2 pos = testObject->physics->GetPosition();
     testObject->physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x+testObject->sprite->GetWidth(), pos.y + testObject->sprite->GetHeight(), 0}});
 
     testObject->AddToGameWorld();
+
+
+    //RayCollider* newRay = new RayCollider({ 0,0 }, { 0.5,0.5 }, 500);
+    //Hit out;
+    //if (newRay->Overlaps(testObject->physics->collider, out)) {
+    //    std::cout << "hi" << std::endl;
+    //}
 
 
     nodeGraph = NodeGraph();
@@ -52,6 +59,12 @@ void Game::Start()
     Timer timer;
 
     bool started = false;
+    
+
+    AIObject* testAI = new AIObject();
+    testAI->physics->SetPosition({ 1000, 500 });
+    testAI->AIAgent->SetSpeed(200);
+    testAI->AIAgent->GoToNode(nodeGraph.GetNode(1, 10));
 
     while (!WindowShouldClose()) {
         DeltaTime = timer.RecordNewTime();
@@ -76,12 +89,9 @@ void Game::Start()
         //        started = false;
         //    }
         //}
-
+        
         if (IsKeyPressed(KEY_SPACE)) {
-            AIObject* testAI = new AIObject();
-            testAI->physics->SetPosition({ 1000, 100.0f });
-            testAI->AIAgent->SetSpeed(200);
-            testAI->AIAgent->GoToNode(nodeGraph.GetNode(1, 15));
+            testAI->AIAgent->GoToNode(nodeGraph.GetNode(rand() % ((screenWidth / cellSize)-1) + 1, rand() % ((screenHeight / cellSize)-1) + 1));
         }
         
         Update();
@@ -125,6 +135,6 @@ void Game::Draw() {
     for (int i = 0; i < objects.size(); i++) {
         objects[i]->Draw();
     }
-    //nodeGraph.Draw();
+    nodeGraph.Draw();
     EndDrawing();
 }

@@ -2,8 +2,10 @@
 #include <iostream>
 #include <algorithm> 
 #include "Game.h"
+#include <thread>
 
 // PATH FINDING ALGORITHMS
+
 Pathfinding::Path Pathfinding::DijkstrasGenerate(Node* startNode, Node* endNode)
 {
     if (startNode == nullptr || endNode == nullptr) {
@@ -83,6 +85,7 @@ Pathfinding::Path Pathfinding::AStarGenerate(Node* startNode, Node* endNode, flo
 
     startNode->gScore = 0;
     startNode->lastNode = nullptr;
+    endNode->lastNode = nullptr;
 
     std::vector<Node*> openList = std::vector<Node*>();
     std::vector<Node*> closedList = std::vector<Node*>();
@@ -136,12 +139,58 @@ Pathfinding::Path Pathfinding::AStarGenerate(Node* startNode, Node* endNode, flo
 
     // Backtrack and create the path
     while (currentNode != nullptr) {
-        path.waypoints.insert(path.waypoints.begin(), currentNode);
         currentNode = currentNode->lastNode;
+        if (currentNode != nullptr) {
+            path.waypoints.insert(path.waypoints.begin(), currentNode);
+        }
+        
+        
     }
 
     return path;
 }
+
+Path Pathfinding::PostPathSmooth(Path path)
+{
+    if (path.size() == 0) {
+        return path;
+    }
+    Path newPath = Path();
+    newPath.waypoints.push_back(path.waypoints[0]);
+
+    int k = 0;
+
+    std::vector<Object*> collideObjects = std::vector<Object*>();
+    for (int i = 0; i < Game::objects.size(); i++) {
+        if (Game::objects[i]->tag == path.waypoints[0]->parent->obstacleTag && Game::objects[i]->physics->collider != nullptr) {
+            collideObjects.push_back(Game::objects[i]);
+        }
+    }
+    
+    if (collideObjects.size() == 0) {
+        return path;
+    }
+
+    for (int i = 1; i < path.size()-1; i++) {
+        for (int j = 0; j < collideObjects.size(); j++) {
+            Vector2 diff = Vector2Subtract(path.waypoints[i + 1]->WorldPosition(), newPath.waypoints[k]->WorldPosition());
+
+            RayCollider* ray = new RayCollider(newPath.waypoints[k]->WorldPosition(), Vector2Normalize(diff), Vector2Length(diff));
+            Hit out;
+           
+            if (ray->Overlaps(collideObjects[j]->physics->collider, out)) {
+                k++;
+                newPath.waypoints.push_back(path.waypoints[i]);
+            }
+        }
+    }
+    k++;
+    newPath.waypoints.push_back(path.waypoints[path.size()-1]);
+    return newPath;
+}
+
+
+
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -167,73 +216,13 @@ Pathfinding::NodeGraph::~NodeGraph()
 {
     delete[] m_nodes;
 }
-//void Pathfinding::NodeGraph::Initialise(std::vector<std::string> asciiMap, int cellSize)
-//{
-//    m_cellSize = cellSize;
-//    const char emptySquare = '0';
-//     
-//    // assume all strings are the same length, so we'll size the map according
-//    // to the number of strings and the length of the first one
-//    m_height = asciiMap.size();
-//    m_width = asciiMap[0].size();
-//
-//    m_nodes = new Node * [m_width * m_height];
-//
-//    // loop over the strings, creating Node entries as we go
-//    for (int y = 0; y < m_height; y++)
-//    {
-//        std::string& line = asciiMap[y];
-//        // report to the use that you have a mis-matched string length
-//        if (line.size() != m_width) {
-//            std::cout << "Mismatched line #" << y << " in ASCII map (" << line.size() << " instead of " << m_width << ")" << std::endl;
-//        }
-//        for (int x = 0; x < m_width; x++)
-//        {
-//            // get the x-th character, or return an empty node if the string         
-//            // isn't long enough
-//            char tile = x < line.size() ? line[x] : emptySquare;
-//
-//            // create a node for anything but a '.' character
-//            m_nodes[x + m_width * y] = tile == emptySquare ? nullptr : new Node(x, y, this);
-//        }
-//    }
-//
-//    // now loop over the nodes, creating connections between each node and its      
-//    // neighbour to the West and South on the grid. this will link up all nodes
-//    for (int y = 0; y < m_height; y++)
-//    {
-//        for (int x = 0; x < m_width; x++)
-//        {
-//            Node* node = GetNode(x, y);
-//            if (node)
-//            {
-//                // see if there's a node to our west, checking for array overruns      
-//                // first if we're on the west-most edge
-//                Node* nodeWest = x == 0 ? nullptr : GetNode(x - 1, y);
-//                if (nodeWest)
-//                {
-//                    node->ConnectTo(nodeWest, 1); // TODO weights
-//                    nodeWest->ConnectTo(node, 1);
-//                }
-//
-//                // see if there's a node south of us, checking for array index
-//                // overruns again
-//                Node* nodeSouth = y == 0 ? nullptr : GetNode(x, y - 1);
-//                if (nodeSouth)
-//                {
-//                    node->ConnectTo(nodeSouth, 1);
-//                    nodeSouth->ConnectTo(node, 1);
-//                }
-//            }
-//        }
-//    }
-//}
 void Pathfinding::NodeGraph::GenerateGrid(int width, int height, int cellSize, std::string collideTag, float collideSize)
 {
     m_width = width;
     m_height = height;
     m_cellSize = cellSize;
     m_nodes = new Node * [m_width * m_height];
+    obstacleTag = collideTag;
 
     // Find all objects that will cut the grid
     std::vector<Object*> collideObjects = std::vector<Object*>();
@@ -285,38 +274,34 @@ void Pathfinding::NodeGraph::GenerateGrid(int width, int height, int cellSize, s
                 Node* nodeWest = GetNode(x - 1, y);
                 if (nodeWest)
                 {
-                    node->ConnectTo(nodeWest, 1); // TODO weights
-                    nodeWest->ConnectTo(node, 1);
+                    node->ConnectTo(nodeWest, D); // TODO weights
+                    nodeWest->ConnectTo(node, D);
                 }
 
                 // See if there's a node to the south, checking for array index
                 Node* nodeNorth = GetNode(x, y - 1);
                 if (nodeNorth)
                 {
-                    node->ConnectTo(nodeNorth, 1);
-                    nodeNorth->ConnectTo(node, 1);
+                    node->ConnectTo(nodeNorth, D);
+                    nodeNorth->ConnectTo(node, D);
                 }
 
-                /*
+                
                 Node* nodeNorthEast = GetNode(x+1, y-1);
                 Node* nodeNorthWest = GetNode(x-1, y-1);
                 
                 // Diagonals
                 // North east
                 if (nodeNorthEast) {
-                    //node->ConnectTo(nodeNorthEast, 1.4f);
-                    //nodeNorthEast->ConnectTo(node, 1.4f);
+                    //node->ConnectTo(nodeNorthEast, D2);
+                    //nodeNorthEast->ConnectTo(node, D2);
                 }
                 
                 // North west
                 if (nodeNorthWest) {
-                    //node->ConnectTo(nodeNorthWest, 1.4f);
-                    //nodeNorthWest->ConnectTo(node, 1.4f);
+                    //node->ConnectTo(nodeNorthWest, D2);
+                    //nodeNorthWest->ConnectTo(node, D2);
                 }
-
-                */
-
-
 
             }
         }
@@ -372,7 +357,7 @@ Pathfinding::PathAgent::~PathAgent()
 }
 void Pathfinding::PathAgent::Update(float deltaTime)
 {
-    if (isFinished) {
+    if (hasFinishedPath || m_path.empty()) {
         return;
     }
 
@@ -387,12 +372,13 @@ void Pathfinding::PathAgent::Update(float deltaTime)
     }
     else {
         m_currentIndex++;
+        m_currentNode = m_path.waypoints[m_currentIndex];
 
         // Path is finished
         if (m_currentIndex == m_path.size()-1) {
             ownerPhysics->SetPosition(m_path.waypoints[m_currentIndex]->WorldPosition());
             m_path.setEmpty();
-            isFinished = true;
+            hasFinishedPath = true;
         }
         else {
             // Find new direction to the node that was just found
@@ -409,12 +395,59 @@ void Pathfinding::PathAgent::GoToNode(Node* target)
     // Find the start of the path that the node is on
     m_currentNode = target->parent->GetClosestNode(ownerPhysics->GetPosition());
     if (m_currentNode != nullptr) {
-        m_path = AStarGenerate(m_currentNode, target);
-        m_currentIndex = 0;
-        isFinished = false;
+        GeneratePathThreaded(m_currentNode, target);
+
     }
     
 }
+
+void Pathfinding::PathAgent::GeneratePathThreaded(Node*& startNode, Node*& endNode)
+{  
+    // Bind the finished callback function (Will be called when path has finished generating)
+    std::function<void(Path)> func = std::bind(&PathAgent::GenerationThreadFinished, this, std::placeholders::_1);
+    // Call the generation function on a seperate thread
+    std::thread gen(std::bind(&PathAgent::GenerationThread, this, std::ref(startNode), std::ref(endNode), func));
+    // Detach so that it works in the background
+    gen.detach();
+}
+
+// Generates path in seperate thread
+void Pathfinding::PathAgent::GenerationThread(Node*& startNode, Node*& endNode, std::function<void(Path)> callbackFunction)
+{
+    // If agent is already generating path, queue
+    while (currentlyGeneratingPath) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    currentlyGeneratingPath = true;
+
+    // Generate path
+    Path path = AStarGenerate(startNode, endNode);
+
+    path = PostPathSmooth(path);
+
+    currentlyGeneratingPath = false;
+    // Call the function when finished
+    callbackFunction(path);
+}
+
+// Called when generation thread has finished
+void Pathfinding::PathAgent::GenerationThreadFinished(Path path)
+{
+    // Assign values for path
+    if (path.size() == 0) {
+        return;
+    }
+
+    m_path = path;
+    m_currentIndex = 0;
+    hasFinishedPath = false;
+}
+
+
+
+
+
 void Pathfinding::PathAgent::Draw()
 {
     Vector2 pos = ownerPhysics->GetPosition();
@@ -439,11 +472,11 @@ void Pathfinding::PathAgent::SetPath(Path path)
     if (path.empty()) {
         m_path = path;
         m_currentIndex = 0;
-        isFinished = true;
+        hasFinishedPath = true;
         return;
     }
     m_path = path;
     ownerPhysics->SetPosition(m_path.waypoints[0]->WorldPosition());
     m_currentIndex = 0;
-    isFinished = false;
+    hasFinishedPath = false;
 }

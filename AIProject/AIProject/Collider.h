@@ -3,10 +3,11 @@
 #include "raymath.h"
 #include <vector>
 #include "Hit.h"
+#include <limits>
 // ALL COLLIDERS ARE FOUND IN THIS HEADER
 
 // Collider type
-enum class cType { None, Rectangle, Circle };
+enum class cType { None, Rectangle, Circle, Ray };
 
 // Child colliders will override the majority of functionality of the base collider class
 class Collider
@@ -21,6 +22,7 @@ public:
 
 	// Overlap functions
 	virtual bool Overlaps(Collider* other, Vector3 thisVel, Vector3 otherVel, Hit& result) { return false;  };
+	virtual bool Overlaps(Collider* other, Hit& result) { return false;  };
 	virtual bool Overlaps(Vector2 point) { return false; };
 	bool OverlapsScreen(Vector3 velocity, Hit& result);;
 
@@ -116,5 +118,24 @@ public:
 	bool Overlaps(Collider* other, Vector3 thisVel, Vector3 otherVel, Hit& result) override;
 
 	void Translate(float x, float y) override;
+
+};
+
+
+
+class RayCollider : public Collider {
+	public:
+		Vector2 origin;
+		Vector2 direction;
+		float length;
+
+		RayCollider();
+		~RayCollider();
+		RayCollider(Vector2 start, Vector2 dir, float len = std::numeric_limits<float>::min());
+
+		// Override overlap functions
+		bool Overlaps(Vector2 point) override;
+		bool Overlaps(Collider* other, Hit& result) override;
+
 
 };
