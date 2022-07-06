@@ -1,15 +1,18 @@
 #pragma once
-#include "Pathfinding.h"
+#include "Agent.h"
 #include "Object.h"
-using namespace Pathfinding;
+#include "FiniteStateMachine.h"
 
 class AIObject : public Object
 {
 public:
-	AIObject();
+	AIObject(NodeGraph* graph);
 	virtual ~AIObject();
 
-	PathAgent* AIAgent;
+
+	void CreateAIAgent(FiniteStateMachine* fsm);
+	void CreateAIAgent();
+	Agent* AIAgent;
 
 	void Update(float DeltaTime) override;
 	void Draw() override;

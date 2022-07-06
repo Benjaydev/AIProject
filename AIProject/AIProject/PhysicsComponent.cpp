@@ -3,6 +3,7 @@
 #include "raymath.h"
 #include "Game.h"
 
+
 using namespace std;
 
 PhysicsComponent::PhysicsComponent()
@@ -84,12 +85,35 @@ void PhysicsComponent::UpdateTransform()
 }
 
 
-void PhysicsComponent::Accelerate(float direction)
+void PhysicsComponent::AccelerateFacing(float direction)
 {
 	Vector3 facing = { localTransform.m0, localTransform.m1, 1};
 	
 	// Get travel distance fowards
 	facing = Vector3FloatMultiply(facing, moveSpeed * direction);
+
+	// Add to acceleration
+	*acceleration = Vector3Add(*acceleration, facing);
+}
+
+void PhysicsComponent::AccelerateFacingRotated(float direction, float degrees)
+{
+	Vector2 dir = Vector2Rotate({ localTransform.m0, localTransform.m1 }, degrees);
+	Vector3 facing = { dir.x, dir.y, 1 };
+
+	// Get travel distance fowards
+	facing = Vector3FloatMultiply(facing, moveSpeed * direction);
+
+	// Add to acceleration
+	*acceleration = Vector3Add(*acceleration, facing);
+}
+
+void PhysicsComponent::AccelerateInDirection(Vector2 direction)
+{
+	Vector3 facing = { direction.x, direction.y, 1 };
+
+	// Get travel distance
+	facing = Vector3FloatMultiply(facing, moveSpeed);
 
 	// Add to acceleration
 	*acceleration = Vector3Add(*acceleration, facing);
@@ -229,12 +253,13 @@ Vector3 PhysicsComponent::Vector3FloatDivision(Vector3 v1, float f){
 	return v3;
 }
 
-/*
+
 void PhysicsComponent::GlobalCollisionCheck(float DeltaTime)
 {
-	for (int i = 0; i < Environment::objects.size(); i++) {
+	for (int i = 0; i < Game::objects.size(); i++) {
 		// Get the first object to check against the next 
-		Object* check = Environment::objects[i];
+		Object* check = Game::objects[i];
+
 		// If it has no collider or shouldn't check physics, ignore collisions and move
 		if (check->physics->collider == nullptr || !check->physics->hasPhysicsCheck) {
 			check->physics->Move(DeltaTime);
@@ -243,22 +268,16 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime)
 		
 		Hit wallResult;
 		// Check if object is colliding with screen boundries
-		if (check->physics->collider->OverlapsScreen(check->physics->deltaVelocity(DeltaTime), wallResult)) {
+		if (check->physics->collider->OverlapsScreenBorders(check->physics->deltaVelocity(DeltaTime), wallResult)) {
 			// Set velocity to the adjusted velocity (Removes DeltaTime as it will be applied again during Move(DeltaTime)
 			check->physics->velocity->x = wallResult.OutVel.x / DeltaTime;
 			check->physics->velocity->y = wallResult.OutVel.y / DeltaTime;
-
-			// If it's a ball or powerup, call their collide events as they have unique collision results
-			if (check->tag == "Ball" || check->tag == "Powerup") {
-				wallResult.otherTag = "Wall";
-				check->CollideEvent(wallResult, nullptr);
-			}
 		}
 
 
-		for (int j = i+1; j < Environment::objects.size(); j++) {
+		for (int j = i+1; j < Game::objects.size(); j++) {
 			// Get second object to check against the previous object
-			Object* against = Environment::objects[j];
+			Object* against = Game::objects[j];
 
 			// Don't check collision if object does not have physics checks, is child of the other object, if object collider is null, or if both objects have no velocity
 			if (!against->physics->hasPhysicsCheck || against->parent == check || against->physics->collider == nullptr || ((check->physics->velocity->x == 0.0f && check->physics->velocity->y == 0.0f) && (against->physics->velocity->x == 0.0f && against->physics->velocity->y == 0.0f))) {
@@ -271,8 +290,7 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime)
 
 			// If collision is detected
 			if (collided) {
-				// If the first object is a ball and the second object is a player or brick
-				if (check->tag == "Ball" && (against->tag == "Player" || against->tag == "LeftPlayerEnd" || against->tag == "RightPlayerEnd" || against->tag == "Brick")) {
+				if (check->tag == "Player" && against->tag == "Obstacle") {
 					// Save tag of other object
 					result.otherTag = against->tag;
 
@@ -281,12 +299,11 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime)
 					check->physics->velocity->y = result.OutVel.y / DeltaTime;
 					check->physics->Move(DeltaTime);
 
-					// Call collide event for first object (The ball)
+					// Call collide event for first object
 					check->CollideEvent(result, against);
 
 				}
-				// If the second object is a ball and the first object is a player or brick
-				if (against->tag == "Ball" && (check->tag == "Player" || check->tag == "LeftPlayerEnd" || check->tag == "RightPlayerEnd" || check->tag == "Brick")) {
+				if (check->tag == "Obstacle" && against->tag == "Player") {
 					// Save tag of other object
 					result.otherTag = check->tag;
 
@@ -295,29 +312,11 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime)
 					against->physics->velocity->y = result.OutVel.y / DeltaTime;
 					against->physics->Move(DeltaTime);
 
-					// Call collide event for second object (The ball)
+					// Call collide event for second object
 					against->CollideEvent(result, check);
-				}
-			
-				// If the first object is a powerup and the second object is the player
-				if (check->tag == "Powerup" && (against->tag == "Player" || against->tag == "LeftPlayerEnd" || against->tag == "RightPlayerEnd")) {
-					check->CollideEvent(result, against);
-					continue;
-				}
-				// If the second object is a powerup and the first object is the player
-				if (against->tag == "Powerup" && (check->tag == "Player" || check->tag == "LeftPlayerEnd" || check->tag == "RightPlayerEnd")) {
-					against->CollideEvent(result, check);
-					continue;
-				}
-				
-				 Ball against ball collision
-				if (check->tag == "Ball" && against->tag == "Ball") {
-					result.otherTag = "Ball";
-					check->CollideEvent(result, against);
 
-					Hit newHit = Hit({ result.OutVel, Vector2Negate(result.HitNormal), result.percentDistanceAlongHitFace, result.otherTag });
-					against->CollideEvent(newHit, check);
 				}
+
 
 			}
 		}
@@ -326,4 +325,3 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime)
 	}
 
 }
-*/

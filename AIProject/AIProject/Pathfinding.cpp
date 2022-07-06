@@ -225,10 +225,10 @@ Pathfinding::NodeGraph::~NodeGraph()
 {
     delete[] m_nodes;
 }
-void Pathfinding::NodeGraph::GenerateGrid(int width, int height, int cellSize, std::string collideTag, float collideSize)
+void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag, float collideSize)
 {
-    m_width = width;
-    m_height = height;
+    m_width = dimensions.x/cellSize;
+    m_height = dimensions.y/cellSize;
     m_cellSize = cellSize;
     m_nodes = new Node * [m_width * m_height];
     obstacleTag = collideTag;
@@ -276,9 +276,6 @@ void Pathfinding::NodeGraph::GenerateGrid(int width, int height, int cellSize, s
     {
         for (int x = 0; x < m_width; x++)
         {
-            if (x == m_width-1) {
-                std::cout << "hi" << std::endl;
-            }
             Node* node = GetNode(x, y);
             if (node)
             {
@@ -320,7 +317,6 @@ void Pathfinding::NodeGraph::GenerateGrid(int width, int height, int cellSize, s
             }
         }
     }
-    std::cout << "hi" << std::endl;
 
 
 }
@@ -358,11 +354,22 @@ Pathfinding::Node* Pathfinding::NodeGraph::GetClosestNode(Vector2 worldPos)
     }
 
     int y = (int)(worldPos.y / m_cellSize);
-    if (y < 0 || y >= m_width) {
+    if (y < 0 || y >= m_height) {
         return nullptr;
     }
         
     return GetNode(x, y);
+}
+Node* Pathfinding::NodeGraph::GetRandomNode()
+{
+    Node* node = nullptr;
+    while (node == nullptr)
+    {
+        int x = rand() % m_width;
+        int y = rand() % m_height;
+        node = GetNode(x, y);
+    }
+    return node;
 }
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -422,12 +429,31 @@ void Pathfinding::PathAgent::GoToNode(Node* target)
     
 }
 
+void Pathfinding::PathAgent::GoTo(Vector2 point)
+{
+    if (parentGraph == nullptr) {
+        return;
+    }
+
+    Node* target = parentGraph->GetClosestNode(point);
+    if (target == nullptr) {
+        return;
+    }
+
+    // Find the start of the path that the node is on
+    m_currentNode = parentGraph->GetClosestNode(ownerPhysics->GetPosition());
+    if (m_currentNode != nullptr) {
+        GeneratePathThreaded(m_currentNode, target);
+
+    }
+}
+
 void Pathfinding::PathAgent::GeneratePathThreaded(Node*& startNode, Node*& endNode)
 {  
     // Bind the finished callback function (Will be called when path has finished generating)
     std::function<void(Path)> func = std::bind(&PathAgent::GenerationThreadFinished, this, std::placeholders::_1);
     // Call the generation function on a seperate thread
-    std::thread gen(std::bind(&PathAgent::GenerationThread, this, std::ref(startNode), std::ref(endNode), func));
+    std::thread gen(std::bind(&PathAgent::GenerationThread, this, startNode, endNode, func));
     // Detach so that it works in the background
     gen.detach();
 }
@@ -436,8 +462,14 @@ void Pathfinding::PathAgent::GeneratePathThreaded(Node*& startNode, Node*& endNo
 void Pathfinding::PathAgent::GenerationThread(Node*& startNode, Node*& endNode, std::function<void(Path)> callbackFunction)
 {
     // If agent is already generating path, queue
-    while (currentlyGeneratingPath) {
+    for(int i = 0; currentlyGeneratingPath; i++)
+    {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        
+        // Path generation failed
+        if (i >= 600) {
+            callbackFunction(Path());
+        }
     }
 
     currentlyGeneratingPath = true;
@@ -455,16 +487,15 @@ void Pathfinding::PathAgent::GenerationThread(Node*& startNode, Node*& endNode, 
 // Called when generation thread has finished
 void Pathfinding::PathAgent::GenerationThreadFinished(Path path)
 {
-    // Assign values for path
     if (path.size() == 0) {
         return;
     }
 
+    // Assign values for path
     m_path = path;
     m_currentIndex = 0;
     hasFinishedPath = false;
 }
-
 
 
 

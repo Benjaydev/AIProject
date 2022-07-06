@@ -24,7 +24,7 @@ public:
 	virtual bool Overlaps(Collider* other, Vector3 thisVel, Vector3 otherVel, Hit& result) { return false;  };
 	virtual bool Overlaps(Collider* other, Hit& result) { return false;  };
 	virtual bool Overlaps(Vector2 point) { return false; };
-	bool OverlapsScreen(Vector3 velocity, Hit& result);;
+	bool OverlapsScreenBorders(Vector3 velocity, Hit& result);;
 
 	virtual void DrawDebug() {};
 

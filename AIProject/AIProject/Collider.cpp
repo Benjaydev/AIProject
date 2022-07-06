@@ -1,5 +1,6 @@
 #include "Collider.h"
 #include <iostream>
+#include "Game.h"
 
 using namespace std;
 
@@ -24,9 +25,9 @@ Collider* Collider::Copy(Collider* copy)
 	}
 }
 
-/*
+
 // Check if collider overlaps screen borders
-bool Collider::OverlapsScreen(Vector3 velocity, Hit& result)
+bool Collider::OverlapsScreenBorders(Vector3 velocity, Hit& result)
 {
 	// If the collider is a rectangle
 	if (type == cType::Rectangle) {
@@ -73,25 +74,25 @@ bool Collider::OverlapsScreen(Vector3 velocity, Hit& result)
 
 		// Calculate which wall is hit and the normal
 		// Left wall
-		if ((cir->center.x + velocity.x) + normVelocity.x*cir->radius < Game::WorldBorders.x) {
+		if ((cir->center.x + velocity.x - cir->radius) < Game::WorldBorders.x) {
 			result.HitNormal.x = 1;
-			result.OutVel.x =  (velocity.x - (Game::WorldBorders.y - (cir->center.x + velocity.x))) - (normVelocity.x * cir->radius);
+			result.OutVel.x = Game::WorldBorders.x - (cir->center.x + velocity.x - cir->radius);
 		}
 		// Top wall
-		if ((cir->center.y + velocity.y) + normVelocity.y * cir->radius < Game::WorldBorders.y) {
+		if ((cir->center.y + velocity.y - cir->radius) < Game::WorldBorders.y) {
 			result.HitNormal.y = 1;
-			result.OutVel.y =  (velocity.y - (Game::WorldBorders.y - (cir->center.y + velocity.y))) - (normVelocity.y * cir->radius);
+			result.OutVel.y = Game::WorldBorders.y - (cir->center.y + velocity.y - cir->radius);
 		}
 		// Right wall
-		if ((cir->center.x + velocity.x) + normVelocity.x * cir->radius > Game::WorldBorders.z) {
+		if ((cir->center.x + velocity.x + cir->radius) > Game::WorldBorders.z) {
 			result.HitNormal.x = -1;
 			
-			result.OutVel.x =  (velocity.x + (Game::WorldBorders.z - (cir->center.x + velocity.x))) - (normVelocity.x * cir->radius);
+			result.OutVel.x = -((cir->center.x + velocity.x + cir->radius) - Game::WorldBorders.z);
 		}
 		// Bottom wall
-		if ((cir->center.y + velocity.y) + normVelocity.y * cir->radius > Game::WorldBorders.w) {
+		if ((cir->center.y + velocity.y + cir->radius) > Game::WorldBorders.w) {
 			result.HitNormal.y = -1;
-			result.OutVel.y = (velocity.y + (Game::WorldBorders.w - (cir->center.y + velocity.y))) - (normVelocity.y * cir->radius);
+			result.OutVel.y = -((cir->center.y + velocity.y + cir->radius) - Game::WorldBorders.w);
 		}
 
 		// If has hit a wall
@@ -102,4 +103,3 @@ bool Collider::OverlapsScreen(Vector3 velocity, Hit& result)
 
 	return false;
 }
-*/

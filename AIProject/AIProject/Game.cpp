@@ -1,11 +1,15 @@
 #include "Game.h"
 #include "Timer.h"
 #include "AIObject.h"
+#include "Behaviour.h"
+using namespace Behaviours;
 
 
 std::vector<Object*> Game::objects = std::vector<Object*>();
 int Game::lifetimeObjectCount = 0;
-bool Game::DebugActive = false;
+bool Game::DebugActive = true;
+Vector4 Game::WorldBorders = { 0, 0, 0, 0 };
+
 
 Game::Game()
 {
@@ -13,46 +17,54 @@ Game::Game()
 
 Game::~Game()
 {
+    delete nodeGraph;
 }
 
 void Game::Start()
 {
+
     int screenWidth = 1200;
     int screenHeight = 800;
+    WorldBorders.z = screenWidth;
+    WorldBorders.w = screenHeight;
 
     InitWindow(screenWidth, screenHeight, "AI Project");
 
-    UIPanel* testObject = new UIPanel(200, 100, 165, 800, 0xFFFFFFFF);
+    UIPanel* testObject = new UIPanel(200, 100, 200, 800, 0xFFFFFFFF);
     testObject->tag = "Obstacle";
+    testObject->physics->hasPhysicsCheck = true;
     testObject->physics->SetCollider(cType::Rectangle);
     Vector2 pos = testObject->physics->GetPosition();
-    testObject->physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x+testObject->sprite->GetWidth(), pos.y + testObject->sprite->GetHeight(), 0}});
+    testObject->physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x + testObject->sprite->GetWidth(), pos.y + testObject->sprite->GetHeight(), 0} });
 
     testObject->AddToGameWorld();
 
 
-    //    std::cout << "hi" << std::endl;
 
 
-    nodeGraph = NodeGraph();
+    nodeGraph = new NodeGraph();
     int cellSize = 50;
-    nodeGraph.GenerateGrid(screenWidth/cellSize, screenHeight/cellSize, cellSize, "Obstacle", 0.8);
+    nodeGraph->GenerateGrid({ (float)screenWidth, (float)screenHeight }, cellSize, "Obstacle", 0.8);
 
-    
     Timer timer;
 
-    
 
-    AIObject* testAI = new AIObject();
+    player = new Player();
+    player->physics->SetPosition({ 900, 100 });
+
+
+
+    AIObject* testAI = new AIObject(nodeGraph);
+    testAI->AIAgent->target = player;
     testAI->physics->SetPosition({ 1000, 500 });
-    testAI->AIAgent->SetSpeed(200);
-    testAI->AIAgent->GoToNode(nodeGraph.GetNode(1, 10));
+    
+    
 
     while (!WindowShouldClose()) {
         DeltaTime = timer.RecordNewTime();
 
         if (IsKeyPressed(KEY_SPACE)) {
-            testAI->AIAgent->GoToNode(nodeGraph.GetNode(rand() % ((screenWidth / cellSize)-1) + 1, rand() % ((screenHeight / cellSize)-1) + 1));
+            testAI->AIAgent->m_pathAgent->GoToNode(nodeGraph->GetNode(rand() % ((screenWidth / cellSize)-1) + 1, rand() % ((screenHeight / cellSize)-1) + 1));
         }
         
         Update();
@@ -85,6 +97,8 @@ void Game::Update() {
     for (int i = 0; i < objects.size(); i++) {
         objects[i]->Update(DeltaTime);
     }
+
+    PhysicsComponent::GlobalCollisionCheck(DeltaTime);
 }
 
 
@@ -96,6 +110,6 @@ void Game::Draw() {
     for (int i = 0; i < objects.size(); i++) {
         objects[i]->Draw();
     }
-    nodeGraph.Draw();
+    //nodeGraph->Draw();
     EndDrawing();
 }

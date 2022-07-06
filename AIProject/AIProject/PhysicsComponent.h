@@ -43,7 +43,9 @@ public:
 	void Translate(Vector2 v);
 
 	// Movement functions
-	void Accelerate(float direction);
+	void AccelerateFacing(float direction);
+	void AccelerateFacingRotated(float direction, float degrees);
+	void AccelerateInDirection(Vector2 direction);
 	void Decelerate(float DeltaTime);
 	void CalculateVelocity(float DeltaTime);
 	void Move(float DeltaTime);
@@ -52,6 +54,9 @@ public:
 	Vector2 GetPosition() {
 		return { globalTransform.m8, globalTransform.m9 };
 	}
+	Vector2 GetFacingDirection() {
+		return { globalTransform.m0, globalTransform.m1 };
+	}
 	void SetPosition(Vector2 v);
 	void SetRotation(float zRad);
 	void Rotate(float rad);
@@ -59,7 +64,6 @@ public:
 	// Helper maths functions
 	static Vector3 Vector3FloatMultiply(Vector3 v1, float f);
 	static Vector3 Vector3FloatDivision(Vector3 v1, float f);
-
 	
 
 

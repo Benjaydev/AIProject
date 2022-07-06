@@ -1,0 +1,34 @@
+#pragma once
+#include <vector>
+#include "Behaviour.h"
+#include "Condition.h" 
+using namespace Behaviours;
+using namespace Conditions;
+
+class State
+{
+public:
+    struct Transition
+    {
+        Condition* condition;
+        State* targetState;
+    };
+private:
+    std::vector<Behaviour*> m_behaviours;
+    std::vector<Transition> m_transitions;
+
+public:
+    State(Behaviour* behaviour) {
+        m_behaviours.push_back(behaviour);
+    };
+    ~State();
+    virtual void Enter(Agent* agent);
+    virtual void Update(Agent* agent, float deltaTime);
+    virtual void Exit(Agent* agent);
+
+    void AddTransition(Condition* condition, State* state);
+
+    std::vector<Transition> GetTransitions() {
+        return m_transitions;
+    }
+};

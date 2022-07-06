@@ -15,6 +15,10 @@ namespace Pathfinding
     struct Node;
     class NodeGraph;
 
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// EDGE
     struct Edge {
         Edge() { target = nullptr; cost = 0; }
         Edge(Node* _node, float _cost) : target(_node), cost(_cost) {}
@@ -25,7 +29,10 @@ namespace Pathfinding
         inline bool operator== (const Edge& other) const { return (target == other.target) && (cost == other.cost); }
     };
 
-
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// NODE
     struct Node {
         Node() { position = { 0, 0 }; connections = std::vector<Edge>(); parent = nullptr; }
         Node(float x, float y, NodeGraph* _parent) { 
@@ -44,7 +51,7 @@ namespace Pathfinding
 
         float gScore;
         float fScore;
-        Node* lastNode;
+        Node* lastNode = nullptr;
 
         
 
@@ -61,7 +68,8 @@ namespace Pathfinding
         {
             return (node1->gScore < node2->gScore);
         }
-    };struct greater_than_Node_GScore
+    };
+    struct greater_than_Node_GScore
     {
         inline bool operator() (const Node* node1, const Node* node2)
         {
@@ -83,7 +91,10 @@ namespace Pathfinding
         }
     };
 
-
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// PATH
     struct Path {
         Path() { waypoints = std::vector<Node*>(); }
         ~Path(){ waypoints.clear(); }
@@ -97,7 +108,10 @@ namespace Pathfinding
         }
     };
 
-
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// NODE GRAPH
     class NodeGraph {
     public:
         ~NodeGraph();
@@ -111,7 +125,7 @@ namespace Pathfinding
 
         bool canUseDiagonals = false;
 
-        void GenerateGrid(int width, int height, int cellSize, std::string collideTag = "Obstacle", float collideSize = 0.9f);
+        void GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag = "Obstacle", float collideSize = 0.9f);
 
         void Draw();
         void DrawPath(Path path, Color lineColor);
@@ -123,6 +137,10 @@ namespace Pathfinding
         }
         
         Node* GetClosestNode(Vector2 worldPos);
+
+        Node* GetRandomNode();
+
+
        
     };
     static float SqrDistanceHeuristic(Node* node, Node* end) {
@@ -147,7 +165,7 @@ namespace Pathfinding
         return 0;
     }
 
-    static float(*DefaultHeuristic)(Node*, Node*) = DiagonalDistance;
+    static float(*DefaultHeuristic)(Node*, Node*) = ManhattenDistance;
 
 
      Path DijkstrasGenerate(Node* startNode, Node* endNode);
@@ -158,29 +176,45 @@ namespace Pathfinding
      
 
 
-
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// PATH AGENT
 class PathAgent {
      private:
+
          Path m_path;
          int m_currentIndex;
          Node* m_currentNode;
          float m_speed;
 
-         bool hasFinishedPath = true;
+         
          bool currentlyGeneratingPath = false;
 
 
      public:
-
+         PathAgent(){};
          PathAgent(PhysicsComponent* ownerPhysicsComp) {
              ownerPhysics = ownerPhysicsComp;
          }
          ~PathAgent();
 
+         bool hasFinishedPath = true;
          PhysicsComponent* ownerPhysics;
+         NodeGraph* parentGraph;
+
+         void SetParentGraph(NodeGraph* graph) {
+             parentGraph = graph;
+         }
+         void ResetPath() {
+             m_path = Path();
+         }
 
          void Update(float DeltaTime);
          void GoToNode(Node* target);
+         void GoTo(Vector2 point);
+
+
          void GeneratePathThreaded(Node*& startNode, Node*& endNode);
          void GenerationThread(Node*& startNode, Node*& endNode, std::function<void(Path)> callbackFunction);
          void GenerationThreadFinished(Path path);

@@ -46,7 +46,10 @@ void Object::RemoveFromGameWorld() {
 void Object::DeleteSelf()
 {
 	// Delete self
-	delete this;
+	if (this != nullptr) {
+		delete this;
+	}
+
 }
 
 void Object::AddToGameWorld() {
