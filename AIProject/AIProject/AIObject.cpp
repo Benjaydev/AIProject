@@ -20,7 +20,7 @@ AIObject::AIObject(NodeGraph* graph)
     SqrDistanceCondition* furtherThan7 = new SqrDistanceCondition(7.0f * AIAgent->m_pathAgent->parentGraph->m_cellSize, false);
 
     // register these states with the FSM, so its responsible for deleting them now
-    State* lingerState = new State(new LingerBehaviour(200));
+    State* lingerState = new State(new WanderBehaviour());
     State* followState = new State(new FollowTargetBehaviour());
     lingerState->AddTransition(closerThan5, followState);
     followState->AddTransition(furtherThan7, lingerState);

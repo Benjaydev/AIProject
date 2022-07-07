@@ -33,14 +33,7 @@ void Game::Start()
 
 
 
-    UIPanel* testObject = new UIPanel(200, 100, 200, 800, 0xFFFFFFFF);
-    testObject->tag = "Obstacle";
-    testObject->physics->hasPhysicsCheck = true;
-    testObject->physics->SetCollider(cType::Rectangle);
-    Vector2 pos = testObject->physics->GetPosition();
-    testObject->physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x + testObject->sprite->GetWidth(), pos.y + testObject->sprite->GetHeight(), 0} });
-
-    testObject->AddToGameWorld();
+    
 
 
     nodeGraph = new NodeGraph();
@@ -66,8 +59,27 @@ void Game::Start()
             testAI->AIAgent->m_pathAgent->GoToNode(nodeGraph->GetNode(rand() % ((screenWidth / cellSize) - 1) + 1, rand() % ((screenHeight / cellSize) - 1) + 1));
             
             
+        }
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
+            UIPanel* testObject = new UIPanel(mousePos.x, mousePos.y, 100, 100, 0xFFFFFFFF);
+            testObject->tag = "Obstacle";
+            testObject->physics->hasPhysicsCheck = true;
+            testObject->physics->SetCollider(cType::Rectangle);
+            Vector2 pos = testObject->physics->GetPosition();
+            testObject->physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x + testObject->sprite->GetWidth(), pos.y + testObject->sprite->GetHeight(), 0} });
+
+            testObject->AddToGameWorld();
+
             
         }
+        if (IsKeyPressed(KEY_G)) {
+            nodeGraph->GenerateGrid({ (float)screenWidth * 3, (float)screenHeight * 3 }, cellSize, "Obstacle", 0.8);
+        }
+
+
+
+
         
         Update();
         Draw();     
@@ -125,15 +137,11 @@ void Game::Draw() {
     Vector2 pos = GetScreenToWorld2D({0, 0}, player->camera);
     DrawFPS(pos.x, pos.y);
 
-    int numberOfDraws = 0;
-
     for (int i = 0; i < objects.size(); i++) {
         if (objects[i]->isOnScreen) {
             objects[i]->Draw();
-            numberOfDraws++;
         }
     }
-    std::cout << numberOfDraws << std::endl;
 
     //nodeGraph->Draw();
     EndMode2D();

@@ -4,7 +4,8 @@ Player::Player()
 {
 	tag = "Player";
 
-	spriteObject->LoadSprite((char*)"Images/PlayerCounter.png");
+	spriteObject->LoadSprite((char*)"Images/Agent74.png");
+	spriteObject->sprite->SetScale(0.5f);
 
 	physics->SetCollider(cType::Circle);
 	((CircleCollider*)physics->collider)->center = physics->GetPosition();
