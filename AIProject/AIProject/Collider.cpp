@@ -29,6 +29,8 @@ Collider* Collider::Copy(Collider* copy)
 // Check if collider overlaps screen borders
 bool Collider::OverlapsScreenBorders(Vector3 velocity, Hit& result)
 {
+
+
 	// If the collider is a rectangle
 	if (type == cType::Rectangle) {
 		// Cast to rectangle collider

@@ -254,25 +254,31 @@ Vector3 PhysicsComponent::Vector3FloatDivision(Vector3 v1, float f){
 }
 
 
-void PhysicsComponent::GlobalCollisionCheck(float DeltaTime)
+void PhysicsComponent::GlobalCollisionCheck(float DeltaTime, bool shouldCullOffScreenObjects)
 {
 	for (int i = 0; i < Game::objects.size(); i++) {
 		// Get the first object to check against the next 
 		Object* check = Game::objects[i];
+
+
+		if (shouldCullOffScreenObjects && check->physics->collider != nullptr) {
+			Hit temp;
+			RectangleCollider* screenRec = new RectangleCollider();
+			screenRec->Fit({ { Game::WorldBorders.x, Game::WorldBorders.y, 0 }, { Game::WorldBorders.z, Game::WorldBorders.w, 0 } });
+			check->SetIsOnScreen(check->physics->collider->Overlaps(screenRec, { 0, 0 }, { 0,0 }, temp));
+		}
+		else {
+			check->SetIsOnScreen(true);
+		}
+
+
 
 		// If it has no collider or shouldn't check physics, ignore collisions and move
 		if (check->physics->collider == nullptr || !check->physics->hasPhysicsCheck) {
 			check->physics->Move(DeltaTime);
 			continue;
 		}
-		
-		Hit wallResult;
-		// Check if object is colliding with screen boundries
-		if (check->physics->collider->OverlapsScreenBorders(check->physics->deltaVelocity(DeltaTime), wallResult)) {
-			// Set velocity to the adjusted velocity (Removes DeltaTime as it will be applied again during Move(DeltaTime)
-			check->physics->velocity->x = wallResult.OutVel.x / DeltaTime;
-			check->physics->velocity->y = wallResult.OutVel.y / DeltaTime;
-		}
+
 
 
 		for (int j = i+1; j < Game::objects.size(); j++) {

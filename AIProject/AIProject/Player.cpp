@@ -20,6 +20,8 @@ Player::Player()
 	AddToGameWorld();
 
 
+
+	camera = Camera2D{ {0, 0}, spriteObject->physics->GetPosition(), 0, 1.0f };
 }
 
 Player::~Player()
@@ -30,6 +32,10 @@ Player::~Player()
 void Player::Update(float DeltaTime)
 {
 	Object::Update(DeltaTime);
+
+	//camera.offset = Vector2Subtract(physics->GetPosition(), camera.target);
+	camera.target = Vector2Subtract(physics->GetPosition(), {(float)GetScreenWidth()/2, (float)GetScreenHeight()/2});
+
 
 	if (IsKeyDown(KEY_W)) {
 		physics->AccelerateInDirection({ 0, -1 });
@@ -44,7 +50,8 @@ void Player::Update(float DeltaTime)
 		physics->AccelerateInDirection({ 1, 0 });
 	}
 
-	Vector2 mousePos = GetMousePosition();
+	
+	Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
 
 	Vector2 dir = Vector2Subtract(mousePos, physics->GetPosition());
 	float angle = acosf(Vector2DotProduct(physics->GetFacingDirection(), Vector2Normalize(dir)));

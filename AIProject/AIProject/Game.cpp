@@ -6,13 +6,13 @@ using namespace Behaviours;
 
 
 std::vector<Object*> Game::objects = std::vector<Object*>();
-int Game::lifetimeObjectCount = 0;
+int Game::lifetimeObjectCount = 0;;
 bool Game::DebugActive = true;
 Vector4 Game::WorldBorders = { 0, 0, 0, 0 };
 
-
 Game::Game()
 {
+
 }
 
 Game::~Game()
@@ -22,13 +22,16 @@ Game::~Game()
 
 void Game::Start()
 {
-
     int screenWidth = 1200;
     int screenHeight = 800;
-    WorldBorders.z = screenWidth;
-    WorldBorders.w = screenHeight;
 
     InitWindow(screenWidth, screenHeight, "AI Project");
+
+    map1 = new MapWood();
+    currentMap = (Map*)map1;
+
+
+
 
     UIPanel* testObject = new UIPanel(200, 100, 200, 800, 0xFFFFFFFF);
     testObject->tag = "Obstacle";
@@ -40,11 +43,9 @@ void Game::Start()
     testObject->AddToGameWorld();
 
 
-
-
     nodeGraph = new NodeGraph();
-    int cellSize = 50;
-    nodeGraph->GenerateGrid({ (float)screenWidth, (float)screenHeight }, cellSize, "Obstacle", 0.8);
+    int cellSize = 25;
+    nodeGraph->GenerateGrid({ (float)screenWidth*3, (float)screenHeight*3 }, cellSize, "Obstacle", 0.8);
 
     Timer timer;
 
@@ -52,11 +53,6 @@ void Game::Start()
     player = new Player();
     player->physics->SetPosition({ 900, 100 });
 
-
-
-    AIObject* testAI = new AIObject(nodeGraph);
-    testAI->AIAgent->target = player;
-    testAI->physics->SetPosition({ 1000, 500 });
     
     
 
@@ -64,7 +60,13 @@ void Game::Start()
         DeltaTime = timer.RecordNewTime();
 
         if (IsKeyPressed(KEY_SPACE)) {
-            testAI->AIAgent->m_pathAgent->GoToNode(nodeGraph->GetNode(rand() % ((screenWidth / cellSize)-1) + 1, rand() % ((screenHeight / cellSize)-1) + 1));
+            AIObject* testAI = new AIObject(nodeGraph);
+            testAI->AIAgent->target = player;
+            testAI->physics->SetPosition({ 1000, 500 });
+            testAI->AIAgent->m_pathAgent->GoToNode(nodeGraph->GetNode(rand() % ((screenWidth / cellSize) - 1) + 1, rand() % ((screenHeight / cellSize) - 1) + 1));
+            
+            
+            
         }
         
         Update();
@@ -94,22 +96,46 @@ void Game::ResetGameObjects() {
 
 
 void Game::Update() {
+    //std::cout << "Update start" << std::endl;
+    Vector2 min = GetScreenToWorld2D({ 0,0 }, player->camera);
+    Vector2 max = GetScreenToWorld2D({ (float)GetScreenWidth(),(float)GetScreenHeight()}, player->camera);
+    WorldBorders.x = min.x;
+    WorldBorders.y = min.y;
+    WorldBorders.z = max.x;
+    WorldBorders.w = max.y;
+
+
     for (int i = 0; i < objects.size(); i++) {
         objects[i]->Update(DeltaTime);
     }
-
+    
     PhysicsComponent::GlobalCollisionCheck(DeltaTime);
+
+    //std::cout << "Update end" << std::endl;
 }
 
 
 void Game::Draw() {
     BeginDrawing();
     ClearBackground(BLACK);
-    DrawFPS(0, 0);
-    
+    BeginMode2D(player->camera);
+    currentMap->DrawBackground();
+
+
+    Vector2 pos = GetScreenToWorld2D({0, 0}, player->camera);
+    DrawFPS(pos.x, pos.y);
+
+    int numberOfDraws = 0;
+
     for (int i = 0; i < objects.size(); i++) {
-        objects[i]->Draw();
+        if (objects[i]->isOnScreen) {
+            objects[i]->Draw();
+            numberOfDraws++;
+        }
     }
+    std::cout << numberOfDraws << std::endl;
+
     //nodeGraph->Draw();
+    EndMode2D();
     EndDrawing();
 }

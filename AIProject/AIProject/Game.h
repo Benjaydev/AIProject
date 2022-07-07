@@ -4,6 +4,8 @@
 #include "UIButton.h"
 #include "Player.h"
 #include "Pathfinding.h"
+#include "MapWood.h"
+
 using namespace Pathfinding;
 
 class Game
@@ -20,11 +22,23 @@ public:
 
 	void ResetGameObjects();
 
+	
+
 	NodeGraph* nodeGraph;
 
 	Player* player;
 
 
+	
+	MapWood* map1;
+	Map* currentMap;
+
+
+	RectangleCollider* screenRec = new RectangleCollider();
+
+	static Vector2 screenCenterOffset() {
+		return { (float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2 };
+	}
 	static Vector4 WorldBorders;
 	static std::vector<Object*> objects;
 	static bool DebugActive;

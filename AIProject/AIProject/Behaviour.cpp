@@ -46,7 +46,7 @@ void GoToPointBehaviour::Update(Agent* agent, float deltaTime)
 void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 {
 	cooldownCount += deltaTime;
-	if (cooldownCount < cooldown && !agent->m_pathAgent->hasFinishedPath) {
+	if (cooldownCount < cooldown) {
 		return;
 	}
 	cooldownCount = 0;
@@ -63,6 +63,7 @@ void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 		lastTargetPosition = target->physics->GetPosition();
 		agent->m_pathAgent->GoTo(lastTargetPosition);
 	}
+
 }
 void FollowTargetBehaviour::Exit(Agent* agent)
 {
@@ -103,4 +104,41 @@ void SelectorBehaviour::SetBehaviour(Behaviour* b, Agent* agent)
 		m_selected = b;
 		agent->m_pathAgent->ResetPath();
 	}
+}
+
+
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// LINGER BEHAVIOUR
+void Behaviours::LingerBehaviour::Update(Agent* agent, float deltaTime)
+{
+	if (agent->m_pathAgent->hasFinishedPath) {
+		cooldownCount += deltaTime;
+		if (cooldownCount >= cooldown) {
+			Node* gotonode = nullptr;
+
+			for(int i = 0; gotonode == nullptr && i < 100; i++)
+			{
+				float randomDist = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / radius));
+
+				// Create random direction from -1 to 1 for x and y
+				Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f) * randomDist,((rand() % 2000 - 1000) / 1000.0f) * randomDist };
+				Vector2 location = Vector2Add(agent->m_pathAgent->ownerPhysics->GetPosition(), randDir);
+
+				gotonode = agent->m_pathAgent->parentGraph->GetClosestNode(location);
+			}
+			
+			agent->m_pathAgent->GoToNode(gotonode);
+
+
+			cooldownCount = 0;
+			cooldown = rand() % 3 + 1;
+			gotonode = nullptr;
+
+		}
+	}
+
+
+
 }

@@ -126,6 +126,17 @@ void Object::UnParent() {
 	parent = nullptr;
 }
 
+void Object::SetIsOnScreen(bool state)
+{
+	if (!hasCheckedForOnScreen) {
+		isOnScreen = state;
+		hasCheckedForOnScreen = true;
+	}
+	for (int i = 0; i < children.size(); i++) {
+		children[i]->SetIsOnScreen(state);
+	}
+}
+
 
 
 void Object::LoadSprite(char* filename) {
@@ -159,6 +170,9 @@ void Object::OnUpdate(float DeltaTime)
 void Object::Update(float DeltaTime)
 {
 	OnUpdate(DeltaTime);
+	hasCheckedForOnScreen = false;
+
+
 	physics->Update(DeltaTime);
 
 	UpdateChildPhysics();

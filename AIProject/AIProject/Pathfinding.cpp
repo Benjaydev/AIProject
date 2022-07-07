@@ -168,7 +168,9 @@ Path Pathfinding::PostPathSmooth(Path path)
     }
     
     if (collideObjects.size() == 0) {
-        return path;
+        newPath.waypoints.push_back(path.waypoints[path.size() - 1]);
+        
+        return newPath;
     }
 
     // Search each node starting from the second
@@ -330,7 +332,6 @@ void Pathfinding::NodeGraph::Draw()
             Node* node = GetNode(x, y);
             if (node == nullptr)
             {
-                // draw a solid block in empty squares without a navigation node
                 DrawCircle((int)((x+0.5) * m_cellSize), (int)((y+0.5) * m_cellSize), (int)m_cellSize / 10, RED);
             }
             else
@@ -340,7 +341,7 @@ void Pathfinding::NodeGraph::Draw()
                 {
                     Node* other = node->connections[i].target;
                     DrawLine((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, (other->position.x + 0.5f) * m_cellSize, (other->position.y + 0.5f) * m_cellSize, BLUE);
-                    DrawCircle((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, m_cellSize / 10, BLUE);
+                    //DrawCircle((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, m_cellSize / 10, BLUE);
                 }
             }
         }
@@ -381,10 +382,11 @@ Pathfinding::PathAgent::~PathAgent()
 }
 void Pathfinding::PathAgent::Update(float deltaTime)
 {
-    if (hasFinishedPath || m_path.empty()) {
+    if (hasFinishedPath || m_path.empty() || m_path.isSingle()) {
         return;
     }
 
+    // Calculate distance to next waypoint 
     Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex+1]->WorldPosition(), ownerPhysics->GetPosition());
     float dist = Vector2DotProduct(diff, diff);
     float travelDist = m_speed * deltaTime;
@@ -392,11 +394,13 @@ void Pathfinding::PathAgent::Update(float deltaTime)
     float movementDist = dist - (travelDist * travelDist);
 
     if (movementDist > 0) {
-        ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2MultiplyV(Vector2Normalize(diff), {travelDist, travelDist})));
+        desiredDirection = Vector2Normalize(diff);
+        ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2MultiplyV(desiredDirection, {travelDist, travelDist})));
     }
     else {
         m_currentIndex++;
         m_currentNode = m_path.waypoints[m_currentIndex];
+
 
         // Path is finished
         if (m_currentIndex == m_path.size()-1) {
@@ -446,6 +450,26 @@ void Pathfinding::PathAgent::GoTo(Vector2 point)
         GeneratePathThreaded(m_currentNode, target);
 
     }
+}
+
+void Pathfinding::PathAgent::GeneratePath(Node* startNode, Node* endNode)
+{
+    currentlyGeneratingPath = true;
+
+    // Generate path
+    Path path = AStarGenerate(startNode, endNode);
+    path = PostPathSmooth(path);
+
+    currentlyGeneratingPath = false;
+
+    if (path.size() == 0) {
+        return;
+    }
+
+    // Assign values for path
+    m_path = path;
+    m_currentIndex = 0;
+    hasFinishedPath = false;
 }
 
 void Pathfinding::PathAgent::GeneratePathThreaded(Node*& startNode, Node*& endNode)
@@ -512,11 +536,14 @@ void Pathfinding::PathAgent::DrawPath()
     }
 
     // Draw each point in path
-    for (int i = 1; i < m_path.size(); i++)
+    for (int i = m_currentIndex+1; i < m_path.size(); i++)
     {
+        if (i == m_currentIndex + 1) {
+            DrawLineEx({ (m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize() }, ownerPhysics->GetPosition(), 10 * (GetParentCellSize() / 50), GREEN);
+            continue;
+        }
         DrawLineEx({ (m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize() }, {(m_path.waypoints[i - 1]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i - 1]->position.y + 0.5f) * GetParentCellSize() }, 10 * (GetParentCellSize() / 50), GREEN);
     }
-    DrawCircle((m_path.waypoints[0]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[0]->position.y + 0.5f) * GetParentCellSize(), 15 * (GetParentCellSize() / 50), PURPLE);
     DrawCircle((m_path.waypoints.back()->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints.back()->position.y + 0.5f) * GetParentCellSize(), 15 * (GetParentCellSize() / 50), RED);
 }
 void Pathfinding::PathAgent::SetPath(Path path)

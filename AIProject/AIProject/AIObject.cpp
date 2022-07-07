@@ -7,6 +7,12 @@ using namespace Conditions;
 AIObject::AIObject(NodeGraph* graph)
 {
 	tag = "AI";
+    physics->SetCollider(cType::Circle);
+    ((CircleCollider*)physics->collider)->center = physics->GetPosition();
+    ((CircleCollider*)physics->collider)->radius = 25;
+
+
+
     CreateAIAgent();
     AIAgent->m_pathAgent->SetParentGraph(graph);
     // set up a FSM, we're going to have two states with their own conditions
@@ -14,15 +20,15 @@ AIObject::AIObject(NodeGraph* graph)
     SqrDistanceCondition* furtherThan7 = new SqrDistanceCondition(7.0f * AIAgent->m_pathAgent->parentGraph->m_cellSize, false);
 
     // register these states with the FSM, so its responsible for deleting them now
-    State* wanderState = new State(new WanderBehaviour());
+    State* lingerState = new State(new LingerBehaviour(200));
     State* followState = new State(new FollowTargetBehaviour());
-    wanderState->AddTransition(closerThan5, followState);
-    followState->AddTransition(furtherThan7, wanderState);
+    lingerState->AddTransition(closerThan5, followState);
+    followState->AddTransition(furtherThan7, lingerState);
 
     // make a finite state machine that starts off wandering
-    FiniteStateMachine* fsm = new FiniteStateMachine(wanderState);
+    FiniteStateMachine* fsm = new FiniteStateMachine(lingerState);
 
-    fsm->AddState(wanderState);
+    fsm->AddState(lingerState);
     fsm->AddState(followState);
     AIAgent->SetBehaviour(fsm);
 
@@ -49,11 +55,13 @@ void AIObject::CreateAIAgent()
 
 void AIObject::Update(float DeltaTime)
 {
+    Object::Update(DeltaTime);
 	AIAgent->Update(DeltaTime);
 
 }
 
 void AIObject::Draw()
 {
+    Object::Draw();
 	AIAgent->Draw();
 }

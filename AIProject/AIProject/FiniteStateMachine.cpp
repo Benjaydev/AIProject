@@ -19,8 +19,10 @@ void FiniteStateMachine::Update(Agent* agent, float deltaTime)
     // check the current state's transitions
     for (State::Transition t : m_currentState->GetTransitions())
     {
-        if (t.condition->IsTrue(agent))
+        if (t.condition->IsTrue(agent)) {
             newState = t.targetState;
+        }
+            
     }
 
     // if we've changed state, clean up the old one and initialise the new one

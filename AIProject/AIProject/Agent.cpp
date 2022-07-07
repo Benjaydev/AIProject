@@ -14,8 +14,9 @@ Agent::Agent(Behaviour* _behaviour)
 
 void Agent::Update(float deltaTime)
 {
-    if (m_current != nullptr)
+    if (m_current != nullptr) {
         m_current->Update(this, deltaTime);
+    }
     m_pathAgent->Update(deltaTime);
 }
 

@@ -64,6 +64,28 @@ namespace Behaviours {
 	//------------------------------------------------------------------
 	//------------------------------------------------------------------
 	//------------------------------------------------------------------
+	// LINGER BEHAVIOUR
+	class LingerBehaviour : public Behaviour
+	{
+	private:
+		float radius = 5.0f;
+	public:
+		LingerBehaviour(float r) {
+			radius = r;
+		};
+		virtual void Enter(Agent* agent) {};
+		virtual void Update(Agent* agent, float deltaTime);
+		virtual void Exit(Agent* agent) {};
+
+
+		float cooldown = 2;
+		float cooldownCount = 0;
+	};
+
+
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
 	// SELECTOR BEHAVIOUR
 	class SelectorBehaviour : public Behaviour
 	{
@@ -84,7 +106,6 @@ namespace Behaviours {
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent) {}
 	};
-
 
 
 }

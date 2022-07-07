@@ -17,6 +17,10 @@ public:
 	bool hasSprite = false;
 	bool usesReferencedSprite = false;
 
+	bool isOnScreen = true;
+	bool hasCheckedForOnScreen = false;
+
+
 	// Identification
 	int id = 0;
 	std::string tag = "";
@@ -44,6 +48,7 @@ public:
 	void ParentTo(Object* p);
 	void UnParent();
 
+	void SetIsOnScreen(bool state);
 
 	
 	virtual void OnUpdate(float DeltaTime);

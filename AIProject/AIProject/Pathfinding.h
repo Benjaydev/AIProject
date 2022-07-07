@@ -103,6 +103,7 @@ namespace Pathfinding
     public:
         int size() { return waypoints.size(); }
         bool empty() { return waypoints.empty(); }
+        bool isSingle () { return waypoints.size() == 1; }
         void setEmpty() {
             waypoints = std::vector<Node*>();
         }
@@ -181,17 +182,6 @@ namespace Pathfinding
 //------------------------------------------------------------------
 // PATH AGENT
 class PathAgent {
-     private:
-
-         Path m_path;
-         int m_currentIndex;
-         Node* m_currentNode;
-         float m_speed;
-
-         
-         bool currentlyGeneratingPath = false;
-
-
      public:
          PathAgent(){};
          PathAgent(PhysicsComponent* ownerPhysicsComp) {
@@ -202,6 +192,16 @@ class PathAgent {
          bool hasFinishedPath = true;
          PhysicsComponent* ownerPhysics;
          NodeGraph* parentGraph;
+         Node* m_currentNode;
+         Path m_path;
+         int m_currentIndex;
+         float m_speed;
+         Vector2 desiredDirection;
+
+         bool currentlyGeneratingPath = false;
+
+
+
 
          void SetParentGraph(NodeGraph* graph) {
              parentGraph = graph;
@@ -214,7 +214,7 @@ class PathAgent {
          void GoToNode(Node* target);
          void GoTo(Vector2 point);
 
-
+         void GeneratePath(Node* startNode, Node* endNode);
          void GeneratePathThreaded(Node*& startNode, Node*& endNode);
          void GenerationThread(Node*& startNode, Node*& endNode, std::function<void(Path)> callbackFunction);
          void GenerationThreadFinished(Path path);

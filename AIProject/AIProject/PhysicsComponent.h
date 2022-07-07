@@ -29,13 +29,13 @@ public:
 	std::vector<PhysicsComponent*> childrenPhysics;
 
 	// Collisions
-	Collider* collider = nullptr;
+	Collider* collider;
 	bool isColliding = false;
 	bool hasPhysicsCheck = true;
 	void SetCollider(cType type);
 	void FitColliderWH(float width, float height, Vector2 pos);
 	// Collision check
-	static void GlobalCollisionCheck(float DeltaTime);
+	static void GlobalCollisionCheck(float DeltaTime, bool shouldCullOffScreenObjects = true);
 
 	void Update(float DeltaTime);
 	void UpdateTransform();

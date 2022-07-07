@@ -129,17 +129,19 @@ bool RectangleCollider::Overlaps(Collider* other, Vector3 thisVel, Vector3 other
 	if (other->type == cType::Rectangle) {
 		RectangleCollider* rec = (RectangleCollider*)other;
 
-		// Check if objects are already colliding
-		if (!(max.x < rec->min.x || max.y < rec->min.y || min.x > rec->max.x || min.y > rec->max.y)) {
-			return true;
-		}
-
 		// Get the relative velocity between the two
 		Vector3 relV = Vector3Subtract(thisVel, otherVel);
 
 		float hitTime = 0.0f;
 		float outTime = 1.0f;
 		Vector2 overlapTime = Vector2Zero();
+
+		// Check static collision
+		if (relV.x == 0 && relV.y == 0) {
+			return !(max.x < rec->min.x || max.y < rec->min.y || min.x > rec->max.x || min.y > rec->max.y);
+		}
+
+
 
 		// X axis overlap relative going left
 		if (relV.x < 0)

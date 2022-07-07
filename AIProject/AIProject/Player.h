@@ -8,6 +8,7 @@ public:
 
 	Object* spriteObject = new Object();;
 
+	Camera2D camera;
 
 
 	void Update(float DeltaTime) override;
