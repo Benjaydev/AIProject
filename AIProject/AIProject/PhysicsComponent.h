@@ -57,6 +57,11 @@ public:
 	Vector2 GetFacingDirection() {
 		return { globalTransform.m0, globalTransform.m1 };
 	}
+	void SetFacing(Vector2 facing) {
+		localTransform.m0 = facing.x;
+		localTransform.m1 = facing.y;
+		UpdateTransform();
+	}
 	void SetPosition(Vector2 v);
 	void SetRotation(float zRad);
 	void Rotate(float rad);

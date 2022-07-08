@@ -7,6 +7,9 @@ using namespace Conditions;
 AIObject::AIObject(NodeGraph* graph)
 {
 	tag = "AI";
+    spriteObject->LoadSprite((char*)"Images/CharacterM2.png");
+    spriteObject->sprite->SetScale(0.5f);
+
     physics->SetCollider(cType::Circle);
     ((CircleCollider*)physics->collider)->center = physics->GetPosition();
     ((CircleCollider*)physics->collider)->radius = 25;
@@ -14,16 +17,16 @@ AIObject::AIObject(NodeGraph* graph)
 
 
     CreateAIAgent();
-    AIAgent->m_pathAgent->SetParentGraph(graph);
+    AIAgent->pathAgent->SetParentGraph(graph);
     // set up a FSM, we're going to have two states with their own conditions
-    SqrDistanceCondition* closerThan5 = new SqrDistanceCondition(5.0f * AIAgent->m_pathAgent->parentGraph->m_cellSize, true);
-    SqrDistanceCondition* furtherThan7 = new SqrDistanceCondition(7.0f * AIAgent->m_pathAgent->parentGraph->m_cellSize, false);
+    SqrDistanceCondition* closerThan10 = new SqrDistanceCondition(10.0f * AIAgent->pathAgent->parentGraph->m_cellSize, true);
+    SqrDistanceCondition* furtherThan15 = new SqrDistanceCondition(15.0f * AIAgent->pathAgent->parentGraph->m_cellSize, false);
 
     // register these states with the FSM, so its responsible for deleting them now
-    State* lingerState = new State(new WanderBehaviour());
+    State* lingerState = new State(new LingerBehaviour(200));
     State* followState = new State(new FollowTargetBehaviour());
-    lingerState->AddTransition(closerThan5, followState);
-    followState->AddTransition(furtherThan7, lingerState);
+    lingerState->AddTransition(closerThan10, followState);
+    followState->AddTransition(furtherThan15, lingerState);
 
     // make a finite state machine that starts off wandering
     FiniteStateMachine* fsm = new FiniteStateMachine(lingerState);
@@ -33,8 +36,19 @@ AIObject::AIObject(NodeGraph* graph)
     AIAgent->SetBehaviour(fsm);
 
 
-    AIAgent->m_pathAgent->SetSpeed(100);
+    AIAgent->pathAgent->SetSpeed(100);
+
+
+    AddChild(spriteObject);
+    spriteObject->physics->SetRotation(-90 * DEG2RAD);
+    spriteObject->physics->SetPosition(-spriteObject->sprite->GetCentreOffset().x, spriteObject->sprite->GetCentreOffset().y);
+
 	AddToGameWorld();
+
+    physics->deceleration = 10;
+    physics->moveSpeed = 100;
+
+
 }
 
 AIObject::~AIObject()
@@ -57,6 +71,9 @@ void AIObject::Update(float DeltaTime)
 {
     Object::Update(DeltaTime);
 	AIAgent->Update(DeltaTime);
+
+
+    
 
 }
 

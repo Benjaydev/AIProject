@@ -31,14 +31,9 @@ void Game::Start()
     currentMap = (Map*)map1;
 
 
-
-
-    
-
-
     nodeGraph = new NodeGraph();
     int cellSize = 25;
-    nodeGraph->GenerateGrid({ (float)screenWidth*3, (float)screenHeight*3 }, cellSize, "Obstacle", 0.8);
+    nodeGraph->GenerateGrid({ (float)screenWidth*3, (float)screenHeight*3 }, cellSize, "Obstacle");
 
     Timer timer;
 
@@ -56,25 +51,18 @@ void Game::Start()
             AIObject* testAI = new AIObject(nodeGraph);
             testAI->AIAgent->target = player;
             testAI->physics->SetPosition({ 1000, 500 });
-            testAI->AIAgent->m_pathAgent->GoToNode(nodeGraph->GetNode(rand() % ((screenWidth / cellSize) - 1) + 1, rand() % ((screenHeight / cellSize) - 1) + 1));
+            //testAI->AIAgent->m_pathAgent->GoToNode(nodeGraph->GetNode(rand() % ((screenWidth / cellSize) - 1) + 1, rand() % ((screenHeight / cellSize) - 1) + 1));
             
             
         }
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
-            UIPanel* testObject = new UIPanel(mousePos.x, mousePos.y, 100, 100, 0xFFFFFFFF);
-            testObject->tag = "Obstacle";
-            testObject->physics->hasPhysicsCheck = true;
-            testObject->physics->SetCollider(cType::Rectangle);
-            Vector2 pos = testObject->physics->GetPosition();
-            testObject->physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x + testObject->sprite->GetWidth(), pos.y + testObject->sprite->GetHeight(), 0} });
-
-            testObject->AddToGameWorld();
+            Wall* wall = new Wall(mousePos.x, mousePos.y, 100, 900, (char*)"Images/WhitePixel.png");
 
             
         }
         if (IsKeyPressed(KEY_G)) {
-            nodeGraph->GenerateGrid({ (float)screenWidth * 3, (float)screenHeight * 3 }, cellSize, "Obstacle", 0.8);
+            nodeGraph->GenerateGrid({ (float)screenWidth * 3, (float)screenHeight * 3 }, cellSize, "Obstacle");
         }
 
 
@@ -118,6 +106,7 @@ void Game::Update() {
 
 
     for (int i = 0; i < objects.size(); i++) {
+
         objects[i]->Update(DeltaTime);
     }
     

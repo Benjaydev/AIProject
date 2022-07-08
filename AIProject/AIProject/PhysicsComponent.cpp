@@ -256,15 +256,16 @@ Vector3 PhysicsComponent::Vector3FloatDivision(Vector3 v1, float f){
 
 void PhysicsComponent::GlobalCollisionCheck(float DeltaTime, bool shouldCullOffScreenObjects)
 {
+	RectangleCollider* screenRec = new RectangleCollider();
+	screenRec->Fit({ { Game::WorldBorders.x, Game::WorldBorders.y, 0 }, { Game::WorldBorders.z, Game::WorldBorders.w, 0 } });
+
 	for (int i = 0; i < Game::objects.size(); i++) {
 		// Get the first object to check against the next 
 		Object* check = Game::objects[i];
 
 
 		if (shouldCullOffScreenObjects && check->physics->collider != nullptr) {
-			Hit temp;
-			RectangleCollider* screenRec = new RectangleCollider();
-			screenRec->Fit({ { Game::WorldBorders.x, Game::WorldBorders.y, 0 }, { Game::WorldBorders.z, Game::WorldBorders.w, 0 } });
+			Hit temp;	
 			check->SetIsOnScreen(check->physics->collider->Overlaps(screenRec, { 0, 0 }, { 0,0 }, temp));
 		}
 		else {
@@ -296,7 +297,7 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime, bool shouldCullOffS
 
 			// If collision is detected
 			if (collided) {
-				if (check->tag == "Player" && against->tag == "Obstacle") {
+				if ((check->tag == "Player" || check->tag == "AI") && against->tag == "Obstacle") {
 					// Save tag of other object
 					result.otherTag = against->tag;
 
@@ -309,7 +310,7 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime, bool shouldCullOffS
 					check->CollideEvent(result, against);
 
 				}
-				if (check->tag == "Obstacle" && against->tag == "Player") {
+				if (check->tag == "Obstacle" && (against->tag == "Player" || against->tag == "AI")) {
 					// Save tag of other object
 					result.otherTag = check->tag;
 
@@ -328,6 +329,7 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime, bool shouldCullOffS
 		}
 		check->physics->Move(DeltaTime);
 		
-	}
 
+	}
+	delete screenRec;
 }

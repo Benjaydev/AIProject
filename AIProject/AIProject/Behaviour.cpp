@@ -8,12 +8,12 @@ void Behaviours::WanderBehaviour::Enter(Agent* agent)
 // WANDER BEHAVIOUR
 void WanderBehaviour::Update(Agent* agent, float deltaTime)
 {
-	if (agent->m_pathAgent->GetPath().empty()) {
+	if (agent->pathAgent->GetPath().empty()) {
 
 		cooldownCount += deltaTime;
 
 		if (cooldownCount >= cooldown) {
-			agent->m_pathAgent->GoToNode(agent->m_pathAgent->parentGraph->GetRandomNode());
+			agent->pathAgent->GoToNode(agent->pathAgent->parentGraph->GetRandomNode());
 
 			cooldown = rand() % 3 + 1;
 			cooldownCount = 0;
@@ -35,7 +35,7 @@ void GoToPointBehaviour::Update(Agent* agent, float deltaTime)
 	{
 		Vector2 mousePos = GetMousePosition();
 
-		agent->m_pathAgent->GoTo({ mousePos.x, mousePos.y });
+		agent->pathAgent->GoTo({ mousePos.x, mousePos.y });
 	}
 }
 
@@ -45,6 +45,7 @@ void GoToPointBehaviour::Update(Agent* agent, float deltaTime)
 // FOLOW TARGET BEHAVIOUR
 void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 {
+	agent->FaceTarget();
 	cooldownCount += deltaTime;
 	if (cooldownCount < cooldown) {
 		return;
@@ -57,22 +58,25 @@ void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 
 	Vector2 diff = target->physics->GetPosition(), lastTargetPosition;
 	float dist = Vector2DotProduct(diff, diff);
-	float cellSize = agent->m_pathAgent->parentGraph->m_cellSize;
+	float cellSize = agent->pathAgent->parentGraph->m_cellSize;
 	if (dist > (cellSize * cellSize))
 	{
 		lastTargetPosition = target->physics->GetPosition();
-		agent->m_pathAgent->GoTo(lastTargetPosition);
+		agent->pathAgent->GoTo(lastTargetPosition);
 	}
 
 }
 void FollowTargetBehaviour::Exit(Agent* agent)
 {
+	agent->pathAgent->rotateInDesiredDirection = true;
 }
 void FollowTargetBehaviour::Enter(Agent* agent)
 {
+	agent->pathAgent->rotateInDesiredDirection = false;
+
 	// red when following
 	agent->SetColour({ 255,0,0,255 });
-	agent->m_pathAgent->ResetPath();
+	agent->pathAgent->ResetPath();
 }
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -81,9 +85,9 @@ void FollowTargetBehaviour::Enter(Agent* agent)
 
 void SelectorBehaviour::Update(Agent* agent, float deltaTime)
 {
-	Vector2 diff = Vector2Subtract(agent->target->physics->GetPosition(), agent->m_pathAgent->ownerPhysics->GetPosition());
+	Vector2 diff = Vector2Subtract(agent->target->physics->GetPosition(), agent->pathAgent->ownerPhysics->GetPosition());
 	float dist = Vector2DotProduct(diff, diff);
-	float range = agent->m_pathAgent->parentGraph->m_cellSize * 5;
+	float range = agent->pathAgent->parentGraph->m_cellSize * 5;
 
 	if (dist < (range * range))
 	{
@@ -102,7 +106,7 @@ void SelectorBehaviour::SetBehaviour(Behaviour* b, Agent* agent)
 	if (m_selected != b)
 	{
 		m_selected = b;
-		agent->m_pathAgent->ResetPath();
+		agent->pathAgent->ResetPath();
 	}
 }
 
@@ -113,7 +117,7 @@ void SelectorBehaviour::SetBehaviour(Behaviour* b, Agent* agent)
 // LINGER BEHAVIOUR
 void Behaviours::LingerBehaviour::Update(Agent* agent, float deltaTime)
 {
-	if (agent->m_pathAgent->hasFinishedPath) {
+	if (agent->pathAgent->hasFinishedPath) {
 		cooldownCount += deltaTime;
 		if (cooldownCount >= cooldown) {
 			Node* gotonode = nullptr;
@@ -124,12 +128,12 @@ void Behaviours::LingerBehaviour::Update(Agent* agent, float deltaTime)
 
 				// Create random direction from -1 to 1 for x and y
 				Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f) * randomDist,((rand() % 2000 - 1000) / 1000.0f) * randomDist };
-				Vector2 location = Vector2Add(agent->m_pathAgent->ownerPhysics->GetPosition(), randDir);
+				Vector2 location = Vector2Add(agent->pathAgent->ownerPhysics->GetPosition(), randDir);
 
-				gotonode = agent->m_pathAgent->parentGraph->GetClosestNode(location);
+				gotonode = agent->pathAgent->parentGraph->GetClosestNode(location);
 			}
 			
-			agent->m_pathAgent->GoToNode(gotonode);
+			agent->pathAgent->GoToNode(gotonode);
 
 
 			cooldownCount = 0;

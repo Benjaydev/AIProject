@@ -55,7 +55,7 @@ void Player::Update(float DeltaTime)
 	Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
 
 	Vector2 dir = Vector2Subtract(mousePos, physics->GetPosition());
-	float angle = acosf(Vector2DotProduct(physics->GetFacingDirection(), Vector2Normalize(dir)));
+	float angle = atan2(dir.x, dir.y) - atan2(physics->GetFacingDirection().x, physics->GetFacingDirection().y);
 	
 	if (abs(angle) > 0.1) {
 		physics->Rotate(angle);

@@ -4,6 +4,10 @@ MapWood::MapWood()
 {
     floorBackground = LoadTexture((char*)"Images/Floor.png");
     grassBackground = LoadTexture((char*)"Images/Grass.png");
+
+
+
+
 }
 
 MapWood::~MapWood()

@@ -9,6 +9,8 @@ public:
 	AIObject(NodeGraph* graph);
 	virtual ~AIObject();
 
+	Object* spriteObject = new Object();
+
 
 	void CreateAIAgent(FiniteStateMachine* fsm);
 	void CreateAIAgent();

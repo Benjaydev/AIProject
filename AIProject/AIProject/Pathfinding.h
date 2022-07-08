@@ -55,7 +55,7 @@ namespace Pathfinding
 
         
 
-        inline bool operator== (const Node& other) const { return (position.x == other.position.x) && (position.y == other.position.y); }
+        inline bool operator== (const Node& other) const { return ((position.x == other.position.x) && (position.y == other.position.y)); }
         
     public:
         void ConnectTo(Node* other, float cost);
@@ -87,7 +87,14 @@ namespace Pathfinding
     {
         inline bool operator() (const Node* node1, const Node* node2)
         {
-            return (node1->fScore > node2->fScore);
+            if (node1->fScore > node2->fScore)
+                return true;
+            if (node2->fScore > node1->fScore)
+                return false;
+            return false;
+
+            bool val = (node1->fScore > node2->fScore);
+            return val;
         }
     };
 
@@ -126,7 +133,7 @@ namespace Pathfinding
 
         bool canUseDiagonals = false;
 
-        void GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag = "Obstacle", float collideSize = 0.9f);
+        void GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag = "Obstacle", float collideSize = 2.0f);
 
         void Draw();
         void DrawPath(Path path, Color lineColor);
@@ -192,11 +199,15 @@ class PathAgent {
          bool hasFinishedPath = true;
          PhysicsComponent* ownerPhysics;
          NodeGraph* parentGraph;
-         Node* m_currentNode;
+         Node* currentNode;
          Path m_path;
          int m_currentIndex;
-         float m_speed;
-         Vector2 desiredDirection;
+         Vector2 desiredDirection = {0,0};
+         float turnSpeed = 2;
+
+         float targetRotation = 0;
+         float rotatedAmount = 0;
+         bool rotateInDesiredDirection = true;
 
          bool currentlyGeneratingPath = false;
 
@@ -208,6 +219,9 @@ class PathAgent {
          }
          void ResetPath() {
              m_path = Path();
+
+             targetRotation = 0;
+             rotatedAmount = 0;
          }
 
          void Update(float DeltaTime);
@@ -226,7 +240,7 @@ class PathAgent {
          }
 
          void SetSpeed(float speed) {
-             m_speed = speed;
+             ownerPhysics->moveSpeed  = speed;
          }
          Path GetPath() { return m_path; }
          void SetPath(Path path);

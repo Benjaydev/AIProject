@@ -10,15 +10,15 @@ public:
     Agent();
     Agent(Behaviour* _behaviour);
     ~Agent() { 
-        delete m_current;
-        delete m_pathAgent;
+        delete currentBehaviour;
+        delete pathAgent;
     }
 
     void Update(float deltaTime);
     void Draw();
 
     void CreatePathAgent(PhysicsComponent* ownerPhysicsComp) {
-        m_pathAgent = new PathAgent(ownerPhysicsComp);
+        pathAgent = new PathAgent(ownerPhysicsComp);
     };
 
     void SetBehaviour(Behaviour* behaviour);
@@ -28,13 +28,16 @@ public:
         m_colour = colour;
     }
 
-    PathAgent* m_pathAgent;
+    void FaceTarget();
+
+
+    PathAgent* pathAgent;
     Object* target;
 
 
 
 private:
-    Behaviour* m_current;
+    Behaviour* currentBehaviour;
     Color m_colour = ORANGE;
 };
 

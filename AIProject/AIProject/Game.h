@@ -1,7 +1,5 @@
 #pragma once
-#include "UIInputBox.h"
-#include "UIPanel.h"
-#include "UIButton.h"
+#include"Wall.h"
 #include "Player.h"
 #include "Pathfinding.h"
 #include "MapWood.h"

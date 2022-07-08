@@ -6,7 +6,7 @@ public:
 	Player();
 	virtual ~Player();
 
-	Object* spriteObject = new Object();;
+	Object* spriteObject = new Object();
 
 	Camera2D camera;
 

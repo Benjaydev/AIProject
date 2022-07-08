@@ -4,6 +4,7 @@
 #include "Game.h"
 #include <thread>
 
+
 // PATH FINDING ALGORITHMS
 
 Pathfinding::Path Pathfinding::DijkstrasGenerate(Node* startNode, Node* endNode)
@@ -95,6 +96,7 @@ Pathfinding::Path Pathfinding::AStarGenerate(Node* startNode, Node* endNode, flo
     Node* currentNode;
 
     while (!openList.empty()) {
+        // Causes errors with too many ai in scene
         std::make_heap(openList.begin(), openList.end(), greater_than_Node_FScore());
 
         currentNode = openList[0];
@@ -133,6 +135,7 @@ Pathfinding::Path Pathfinding::AStarGenerate(Node* startNode, Node* endNode, flo
         }
 
     }
+    
 
     Path path = Path();
     currentNode = endNode;
@@ -229,8 +232,8 @@ Pathfinding::NodeGraph::~NodeGraph()
 }
 void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag, float collideSize)
 {
-    m_width = dimensions.x/cellSize;
-    m_height = dimensions.y/cellSize;
+    m_width = dimensions.x / cellSize;
+    m_height = dimensions.y / cellSize;
     m_cellSize = cellSize;
     m_nodes = new Node * [m_width * m_height];
     obstacleTag = collideTag;
@@ -244,7 +247,6 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
     }
 
 
-
     // Create nodes for empty grid
     for (int y = 0; y < m_height; y++)
     {
@@ -252,20 +254,24 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
         {
             Vector2 WorldPos = { (x + 0.5) * m_cellSize, (y + 0.5) * m_cellSize };
 
+            // Create collider for node
             CircleCollider* gridCollider = new CircleCollider();
             gridCollider->center = WorldPos;
             gridCollider->SetDiameter(collideSize*m_cellSize);
 
             bool hasHit = false;
 
+            // Check if node collides with any object
             for (int i = 0; i < collideObjects.size(); i++) {
                 Hit out = Hit();
                 if (collideObjects[i]->physics->collider->Overlaps(gridCollider, { 0,0,0 }, { 0,0,0 }, out)) {
+                    // If hit. No need to search for any more hits
                     hasHit = true;
                     break;
                 }
             }
 
+            // Node is null if it collidd
             m_nodes[x + m_width * y] = hasHit ? nullptr : new Node(x, y, this);
 
             delete gridCollider;
@@ -285,11 +291,11 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
                 Node* nodeWest = GetNode(x - 1, y);
                 if (nodeWest)
                 {
-                    node->ConnectTo(nodeWest, D); // TODO weights
+                    node->ConnectTo(nodeWest, D);
                     nodeWest->ConnectTo(node, D);
                 }
 
-                // See if there's a node to the south, checking for array index
+                // See if there's a node to the north, checking for array index
                 Node* nodeNorth = GetNode(x, y - 1);
                 if (nodeNorth)
                 {
@@ -313,9 +319,7 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
                         node->ConnectTo(nodeNorthWest, D2);
                         nodeNorthWest->ConnectTo(node, D2);
                     }
-                }
-               
-
+                } 
             }
         }
     }
@@ -336,12 +340,11 @@ void Pathfinding::NodeGraph::Draw()
             }
             else
             {
-                // draw the connections between the node and its neighbours
+                // Draw the connections between the node and its neighbours
                 for (int i = 0; i < node->connections.size(); i++)
                 {
                     Node* other = node->connections[i].target;
                     DrawLine((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, (other->position.x + 0.5f) * m_cellSize, (other->position.y + 0.5f) * m_cellSize, BLUE);
-                    //DrawCircle((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, m_cellSize / 10, BLUE);
                 }
             }
         }
@@ -378,7 +381,7 @@ Node* Pathfinding::NodeGraph::GetRandomNode()
 // PATH AGENT
 Pathfinding::PathAgent::~PathAgent()
 {
-    m_currentNode = nullptr;
+    currentNode = nullptr;
 }
 void Pathfinding::PathAgent::Update(float deltaTime)
 {
@@ -389,18 +392,42 @@ void Pathfinding::PathAgent::Update(float deltaTime)
     // Calculate distance to next waypoint 
     Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex+1]->WorldPosition(), ownerPhysics->GetPosition());
     float dist = Vector2DotProduct(diff, diff);
-    float travelDist = m_speed * deltaTime;
+    float travelDist = ownerPhysics->moveSpeed * deltaTime;
 
     float movementDist = dist - (travelDist * travelDist);
 
     if (movementDist > 0) {
         desiredDirection = Vector2Normalize(diff);
-        ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2MultiplyV(desiredDirection, {travelDist, travelDist})));
+
+        if (targetRotation == 0 && rotateInDesiredDirection) {
+            // Get angle to turn towards next node
+            targetRotation = atan2(desiredDirection.x, desiredDirection.y) - atan2(ownerPhysics->GetFacingDirection().x, ownerPhysics->GetFacingDirection().y);
+
+            if (targetRotation > PI) { targetRotation -= 2 * PI; }
+            else if (targetRotation <= -PI) { targetRotation += 2 * PI; }
+
+            rotatedAmount = 0;
+        }
+        rotatedAmount += targetRotation * deltaTime * turnSpeed;
+        std::cout << rotatedAmount << std::endl;
+        
+        if (abs(rotatedAmount) <= abs(targetRotation) && rotateInDesiredDirection) {
+            ownerPhysics->Rotate(targetRotation * deltaTime * turnSpeed);
+            
+        }
+        else {
+            ownerPhysics->AccelerateInDirection(desiredDirection);
+        }
+
+        
     }
     else {
         m_currentIndex++;
-        m_currentNode = m_path.waypoints[m_currentIndex];
+        currentNode = m_path.waypoints[m_currentIndex];
 
+        // Get angle to turn towards next node
+        targetRotation = 0;
+        rotatedAmount = 0;
 
         // Path is finished
         if (m_currentIndex == m_path.size()-1) {
@@ -425,10 +452,9 @@ void Pathfinding::PathAgent::GoToNode(Node* target)
     }
 
     // Find the start of the path that the node is on
-    m_currentNode = target->parent->GetClosestNode(ownerPhysics->GetPosition());
-    if (m_currentNode != nullptr) {
-        GeneratePathThreaded(m_currentNode, target);
-
+    currentNode = target->parent->GetClosestNode(ownerPhysics->GetPosition());
+    if (currentNode != nullptr) {
+        GeneratePathThreaded(currentNode, target);
     }
     
 }
@@ -445,9 +471,9 @@ void Pathfinding::PathAgent::GoTo(Vector2 point)
     }
 
     // Find the start of the path that the node is on
-    m_currentNode = parentGraph->GetClosestNode(ownerPhysics->GetPosition());
-    if (m_currentNode != nullptr) {
-        GeneratePathThreaded(m_currentNode, target);
+    currentNode = parentGraph->GetClosestNode(ownerPhysics->GetPosition());
+    if (currentNode != nullptr) {
+        GeneratePathThreaded(currentNode, target);
 
     }
 }
@@ -511,14 +537,7 @@ void Pathfinding::PathAgent::GenerationThread(Node*& startNode, Node*& endNode, 
 // Called when generation thread has finished
 void Pathfinding::PathAgent::GenerationThreadFinished(Path path)
 {
-    if (path.size() == 0) {
-        return;
-    }
-
-    // Assign values for path
-    m_path = path;
-    m_currentIndex = 0;
-    hasFinishedPath = false;
+    SetPath(path);
 }
 
 
@@ -538,12 +557,15 @@ void Pathfinding::PathAgent::DrawPath()
     // Draw each point in path
     for (int i = m_currentIndex+1; i < m_path.size(); i++)
     {
+        // Draw line from agent to next node 
         if (i == m_currentIndex + 1) {
             DrawLineEx({ (m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize() }, ownerPhysics->GetPosition(), 10 * (GetParentCellSize() / 50), GREEN);
             continue;
         }
+        // Draw line from node to node
         DrawLineEx({ (m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize() }, {(m_path.waypoints[i - 1]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i - 1]->position.y + 0.5f) * GetParentCellSize() }, 10 * (GetParentCellSize() / 50), GREEN);
     }
+    // Draw end point
     DrawCircle((m_path.waypoints.back()->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints.back()->position.y + 0.5f) * GetParentCellSize(), 15 * (GetParentCellSize() / 50), RED);
 }
 void Pathfinding::PathAgent::SetPath(Path path)
@@ -554,8 +576,10 @@ void Pathfinding::PathAgent::SetPath(Path path)
         hasFinishedPath = true;
         return;
     }
+    targetRotation == 0;
+
     m_path = path;
-    ownerPhysics->SetPosition(m_path.waypoints[0]->WorldPosition());
+    //ownerPhysics->SetPosition(m_path.waypoints[0]->WorldPosition());
     m_currentIndex = 0;
     hasFinishedPath = false;
 }
