@@ -22,8 +22,3 @@ void Wall::Update(float DeltaTime)
 
 
 }
-
-void Wall::Draw()
-{
-
-}

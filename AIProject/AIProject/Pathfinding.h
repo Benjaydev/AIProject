@@ -173,7 +173,7 @@ namespace Pathfinding
         return 0;
     }
 
-    static float(*DefaultHeuristic)(Node*, Node*) = ManhattenDistance;
+    static float(*DefaultHeuristic)(Node*, Node*) = SqrDistanceHeuristic;
 
 
      Path DijkstrasGenerate(Node* startNode, Node* endNode);

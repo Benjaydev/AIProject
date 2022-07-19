@@ -23,6 +23,9 @@ void Agent::Update(float deltaTime)
 void Agent::Draw()
 {
     pathAgent->DrawPath();
+    if (currentBehaviour != nullptr) {
+        currentBehaviour->Draw(this);
+    }
 
     Vector2 pos = pathAgent->ownerPhysics->GetPosition();
     DrawCircle((int)pos.x, (int)pos.y, 8 * (pathAgent->GetParentCellSize() / 50), m_colour);

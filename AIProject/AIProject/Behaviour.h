@@ -1,5 +1,7 @@
 #pragma once
 #include "raylib.h"
+#include <string>
+
 class Agent;
 
 namespace Behaviours {
@@ -9,6 +11,12 @@ namespace Behaviours {
 		virtual void Enter(Agent* agent) {}
 		virtual void Update(Agent* agent, float deltaTime) = 0;
 		virtual void Exit(Agent* agent) {}
+
+		// Used by UtilityAI to determine which behaviour to do
+		virtual float Evaluate(Agent* agent) { return 0.0f; }
+		virtual void Draw(Agent* agent) {};
+
+		std::string name = "Behaviour";
 	};
 
 
@@ -19,13 +27,20 @@ namespace Behaviours {
 	class WanderBehaviour : public Behaviour
 	{
 	public:
+		WanderBehaviour(int cellDistance) { 
+			distanceToExit = cellDistance;
+			name = "Wander"; 
+		}
 		virtual void Enter(Agent* agent);
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent);
 
+		int distanceToExit = 0;
 
 		float cooldown = 2;
 		float cooldownCount = 0;
+
+		virtual float Evaluate(Agent* agent);
 
 	};
 
@@ -36,9 +51,12 @@ namespace Behaviours {
 	class GoToPointBehaviour : public Behaviour
 	{
 	public:
+		GoToPointBehaviour() { name = "GoTo"; }
 		virtual void Enter(Agent* agent) {}
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent) {}
+
+		virtual float Evaluate(Agent* agent);
 	};
 
 	//------------------------------------------------------------------
@@ -48,17 +66,23 @@ namespace Behaviours {
 	class FollowTargetBehaviour : public Behaviour
 	{
 	public:
+		FollowTargetBehaviour(int cellDistance) { 
+			distanceToEnter = cellDistance;
+			name = "Follow"; 
+		
+		}
 		virtual void Enter(Agent* agent);
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent);;
 
 		Vector2 lastTargetPosition;
 
+		int distanceToEnter = 0;
 
 		float cooldown = 1;
 		float cooldownCount = 0;
 
-
+		virtual float Evaluate(Agent* agent);
 	};
 
 	//------------------------------------------------------------------
@@ -72,6 +96,7 @@ namespace Behaviours {
 	public:
 		LingerBehaviour(float r) {
 			radius = r;
+			name = "Linger";
 		};
 		virtual void Enter(Agent* agent) {};
 		virtual void Update(Agent* agent, float deltaTime);
@@ -80,6 +105,8 @@ namespace Behaviours {
 
 		float cooldown = 2;
 		float cooldownCount = 0;
+
+		virtual float Evaluate(Agent* agent);
 	};
 
 
@@ -106,6 +133,5 @@ namespace Behaviours {
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent) {}
 	};
-
 
 }

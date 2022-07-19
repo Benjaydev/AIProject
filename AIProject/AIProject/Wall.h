@@ -8,6 +8,5 @@ public:
 
 
 	void Update(float DeltaTime) override;
-	void Draw() override;
 };
 

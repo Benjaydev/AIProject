@@ -396,9 +396,11 @@ void Pathfinding::PathAgent::Update(float deltaTime)
 
     float movementDist = dist - (travelDist * travelDist);
 
+    // Still has distance until next waypoint
     if (movementDist > 0) {
         desiredDirection = Vector2Normalize(diff);
 
+        // Calculate the rotation to desired rotation
         if (targetRotation == 0 && rotateInDesiredDirection) {
             // Get angle to turn towards next node
             targetRotation = atan2(desiredDirection.x, desiredDirection.y) - atan2(ownerPhysics->GetFacingDirection().x, ownerPhysics->GetFacingDirection().y);
@@ -408,13 +410,13 @@ void Pathfinding::PathAgent::Update(float deltaTime)
 
             rotatedAmount = 0;
         }
+        // Rotate towards desired rotation
         rotatedAmount += targetRotation * deltaTime * turnSpeed;
-        std::cout << rotatedAmount << std::endl;
-        
         if (abs(rotatedAmount) <= abs(targetRotation) && rotateInDesiredDirection) {
             ownerPhysics->Rotate(targetRotation * deltaTime * turnSpeed);
             
         }
+        // Move towards location
         else {
             ownerPhysics->AccelerateInDirection(desiredDirection);
         }
@@ -454,7 +456,7 @@ void Pathfinding::PathAgent::GoToNode(Node* target)
     // Find the start of the path that the node is on
     currentNode = target->parent->GetClosestNode(ownerPhysics->GetPosition());
     if (currentNode != nullptr) {
-        GeneratePathThreaded(currentNode, target);
+        GeneratePath(currentNode, target);
     }
     
 }
@@ -473,7 +475,7 @@ void Pathfinding::PathAgent::GoTo(Vector2 point)
     // Find the start of the path that the node is on
     currentNode = parentGraph->GetClosestNode(ownerPhysics->GetPosition());
     if (currentNode != nullptr) {
-        GeneratePathThreaded(currentNode, target);
+        GeneratePath(currentNode, target);
 
     }
 }

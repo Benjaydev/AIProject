@@ -24,6 +24,21 @@ void WanderBehaviour::Update(Agent* agent, float deltaTime)
 void Behaviours::WanderBehaviour::Exit(Agent* agent)
 {
 }
+
+float WanderBehaviour::Evaluate(Agent* agent)
+{
+	Object* target = agent->target;
+	Vector2 diff = Vector2Subtract(target->physics->GetPosition(), agent->pathAgent->ownerPhysics->GetPosition());
+	float sqrDist = Vector2DotProduct(diff, diff);
+
+	// Get value between 0-1
+	float cellDist = distanceToExit * agent->pathAgent->parentGraph->m_cellSize;
+	float eval = fminf(1, sqrDist / (cellDist * cellDist));
+
+	return eval;
+}
+
+
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -37,6 +52,11 @@ void GoToPointBehaviour::Update(Agent* agent, float deltaTime)
 
 		agent->pathAgent->GoTo({ mousePos.x, mousePos.y });
 	}
+}
+
+float Behaviours::GoToPointBehaviour::Evaluate(Agent* agent)
+{
+	return 0.0f;
 }
 
 //------------------------------------------------------------------
@@ -77,6 +97,19 @@ void FollowTargetBehaviour::Enter(Agent* agent)
 	// red when following
 	agent->SetColour({ 255,0,0,255 });
 	agent->pathAgent->ResetPath();
+}
+
+float FollowTargetBehaviour::Evaluate(Agent* agent)
+{
+	Object* target = agent->target;
+	Vector2 diff = Vector2Subtract(target->physics->GetPosition(), agent->pathAgent->ownerPhysics->GetPosition());
+	float sqrDist = Vector2DotProduct(diff, diff);
+
+	// Get value between 0-1
+	float cellDist = distanceToEnter * agent->pathAgent->parentGraph->m_cellSize;
+	float eval = 1 - fminf(1, sqrDist / (cellDist*cellDist));
+
+	return eval;
 }
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -145,4 +178,9 @@ void Behaviours::LingerBehaviour::Update(Agent* agent, float deltaTime)
 
 
 
+}
+
+float Behaviours::LingerBehaviour::Evaluate(Agent* agent)
+{
+	return 0.0f;
 }
