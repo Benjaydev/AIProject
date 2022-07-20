@@ -27,19 +27,20 @@ void Game::Start()
 
     InitWindow(screenWidth, screenHeight, "AI Project");
 
+
     map1 = new MapWood();
     currentMap = (Map*)map1;
 
 
     nodeGraph = new NodeGraph();
     int cellSize = 25;
-    nodeGraph->GenerateGrid({ (float)screenWidth*3, (float)screenHeight*3 }, cellSize, "Obstacle");
+    nodeGraph->GenerateGrid({ (float)screenWidth*2.5f, (float)screenHeight*2.5f }, cellSize, "Obstacle", 2, {0, -600.0f});
 
     Timer timer;
 
 
     player = new Player();
-    player->physics->SetPosition({ 900, 100 });
+    player->physics->SetPosition({ 150, 150 });
 
     
     
@@ -57,7 +58,9 @@ void Game::Start()
         }
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
-            Wall* wall = new Wall(mousePos.x, mousePos.y, 100, 900, (char*)"Images/WhitePixel.png");
+            //Wall* wall = new Wall(mousePos.x, mousePos.y, 100, 900, 1, 0, (char*)"Images/WhitePixel.png");
+
+            player->physics->SetPosition(mousePos);
 
             
         }
@@ -132,7 +135,7 @@ void Game::Draw() {
         }
     }
 
-    //nodeGraph->Draw();
+    nodeGraph->Draw();
     EndMode2D();
     EndDrawing();
 }

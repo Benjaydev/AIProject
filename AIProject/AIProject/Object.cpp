@@ -1,6 +1,7 @@
 #pragma once
-#include "raymath.h"
+//#include "raymath.h"
 #include "Game.h"
+
 using namespace std;
 
 Object::Object()
@@ -206,12 +207,21 @@ void Object::Draw()
 		float rotation = (float)atan2(physics->globalTransform.m1, physics->globalTransform.m0);
 
 		// If game should not be closing
-		if (!WindowShouldClose()) {
+		if (!WindowShouldClose() && sprite != nullptr) {
 			// Get position of object
 			Vector2 position = { physics->globalTransform.m8, physics->globalTransform.m9 };
 			// Draw to screen
-			DrawTextureEx(*sprite->texture, position, rotation * RAD2DEG, 1, sprite->colour);
 
+			// No tiling texture
+			if (sprite->tiling.x == 1 && sprite->tiling.y == 1) {
+				DrawTextureEx(*sprite->texture, position, rotation * RAD2DEG, 1, sprite->colour);
+			}
+			// Tiling texture
+			else {
+				DrawTextureTiled(*sprite->texture, { 0, 0, sprite->GetWidth(),sprite->GetHeight() }, { position.x+ (sprite->GetWidth()/2), position.y + (sprite->GetHeight() / 2), sprite->GetWidth() * sprite->tiling.x,sprite->GetHeight() * sprite->tiling.y }, { sprite->GetWidth()/2,sprite->GetHeight()/2 }, sprite->tiledSpriteRotation, 1, WHITE);
+			}
+
+			
 		}
 	}
 	

@@ -15,7 +15,7 @@ void Obstacle::InitiateObstacle(float x, float y)
     physics->hasPhysicsCheck = true;
     physics->SetCollider(cType::Rectangle);
     Vector2 pos = physics->GetPosition();
-    physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x + sprite->GetWidth(), pos.y + sprite->GetHeight(), 0} });
+    physics->collider->Fit({ {pos.x, pos.y, 0}, {pos.x + (sprite->GetWidth()* sprite->tiling.x), pos.y + (sprite->GetHeight() * sprite->tiling.y), 0} });
 
     AddToGameWorld();
 }

@@ -46,7 +46,7 @@ public:
 	void AccelerateFacing(float direction);
 	void AccelerateFacingRotated(float direction, float degrees);
 	void AccelerateInDirection(Vector2 direction);
-	void Decelerate(float DeltaTime);
+	void Decelerate(float deltaTime);
 	void CalculateVelocity(float DeltaTime);
 	void Move(float DeltaTime);
 

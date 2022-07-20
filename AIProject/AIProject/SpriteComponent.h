@@ -10,6 +10,10 @@ public:
 
     Color colour = WHITE;
 
+    Vector2 tiling = { 1,1 };
+    float tiledSpriteRotation = 0;
+
+
     float GetWidth() { return (float)texture->width; }
     float GetHeight() { return (float)texture->height; }
     float defaultWidth = 0;

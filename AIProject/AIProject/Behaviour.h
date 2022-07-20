@@ -71,6 +71,9 @@ namespace Behaviours {
 			name = "Follow"; 
 		
 		}
+		FollowTargetBehaviour() {
+			name = "Follow";
+		}
 		virtual void Enter(Agent* agent);
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent);;
@@ -79,7 +82,7 @@ namespace Behaviours {
 
 		int distanceToEnter = 0;
 
-		float cooldown = 1;
+		float cooldown = .1;
 		float cooldownCount = 0;
 
 		virtual float Evaluate(Agent* agent);
@@ -102,13 +105,11 @@ namespace Behaviours {
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent) {};
 
-
 		float cooldown = 2;
 		float cooldownCount = 0;
 
 		virtual float Evaluate(Agent* agent);
 	};
-
 
 	//------------------------------------------------------------------
 	//------------------------------------------------------------------

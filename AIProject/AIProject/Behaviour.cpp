@@ -161,7 +161,7 @@ void Behaviours::LingerBehaviour::Update(Agent* agent, float deltaTime)
 
 				// Create random direction from -1 to 1 for x and y
 				Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f) * randomDist,((rand() % 2000 - 1000) / 1000.0f) * randomDist };
-				Vector2 location = Vector2Add(agent->pathAgent->ownerPhysics->GetPosition(), randDir);
+				Vector2 location = Vector2Add(Vector2Add(agent->pathAgent->ownerPhysics->GetPosition(), Vector2Scale(agent->pathAgent->ownerPhysics->GetFacingDirection(), randomDist*1.1f)), randDir);
 
 				gotonode = agent->pathAgent->parentGraph->GetClosestNode(location);
 			}
@@ -184,3 +184,4 @@ float Behaviours::LingerBehaviour::Evaluate(Agent* agent)
 {
 	return 0.0f;
 }
+

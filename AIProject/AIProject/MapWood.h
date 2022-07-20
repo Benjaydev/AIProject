@@ -10,7 +10,7 @@ public:
 	Texture2D floorBackground;
 	Texture2D grassBackground;
 
-	Vector2 BackgroundStartOffset = {-1200, -800};
+	Vector2 BackgroundStartOffset = {-1000, -800};
 
 
 	void Update(float DeltaTime) override;

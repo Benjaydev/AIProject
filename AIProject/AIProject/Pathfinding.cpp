@@ -230,13 +230,14 @@ Pathfinding::NodeGraph::~NodeGraph()
 {
     delete[] m_nodes;
 }
-void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag, float collideSize)
+void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag, float collideSize, Vector2 WorldOffset)
 {
     m_width = dimensions.x / cellSize;
     m_height = dimensions.y / cellSize;
     m_cellSize = cellSize;
     m_nodes = new Node * [m_width * m_height];
     obstacleTag = collideTag;
+    worldOffset = WorldOffset;
 
     // Find all objects that will cut the grid
     std::vector<Object*> collideObjects = std::vector<Object*>();
@@ -252,7 +253,7 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
     {
         for (int x = 0; x < m_width; x++)
         {
-            Vector2 WorldPos = { (x + 0.5) * m_cellSize, (y + 0.5) * m_cellSize };
+            Vector2 WorldPos = { ((x + 0.5) * m_cellSize) + WorldOffset.x, ((y + 0.5) * m_cellSize) + WorldOffset.y };
 
             // Create collider for node
             CircleCollider* gridCollider = new CircleCollider();
@@ -336,7 +337,7 @@ void Pathfinding::NodeGraph::Draw()
             Node* node = GetNode(x, y);
             if (node == nullptr)
             {
-                DrawCircle((int)((x+0.5) * m_cellSize), (int)((y+0.5) * m_cellSize), (int)m_cellSize / 10, RED);
+                DrawCircle((int)((x+0.5) * m_cellSize)+worldOffset.x, (int)((y+0.5) * m_cellSize)+ worldOffset.y, (int)m_cellSize / 10, RED);
             }
             else
             {
@@ -344,7 +345,7 @@ void Pathfinding::NodeGraph::Draw()
                 for (int i = 0; i < node->connections.size(); i++)
                 {
                     Node* other = node->connections[i].target;
-                    DrawLine((node->position.x + 0.5f) * m_cellSize, (node->position.y + 0.5f) * m_cellSize, (other->position.x + 0.5f) * m_cellSize, (other->position.y + 0.5f) * m_cellSize, BLUE);
+                    DrawLine(((node->position.x + 0.5f) * m_cellSize) + worldOffset.x, ((node->position.y + 0.5f) * m_cellSize) +worldOffset.y, ((other->position.x + 0.5f) * m_cellSize) + worldOffset.x, ((other->position.y + 0.5f) * m_cellSize)+worldOffset.y, BLUE);
                 }
             }
         }
@@ -352,12 +353,12 @@ void Pathfinding::NodeGraph::Draw()
 }
 Pathfinding::Node* Pathfinding::NodeGraph::GetClosestNode(Vector2 worldPos)
 {
-    int x = (int)(worldPos.x / m_cellSize);
+    int x = (int)((worldPos.x/ m_cellSize)-(worldOffset.x / m_cellSize));
     if (x < 0 || x >= m_width) {
         return nullptr;
     }
 
-    int y = (int)(worldPos.y / m_cellSize);
+    int y = (int)(((worldPos.y- worldOffset.y) / m_cellSize));
     if (y < 0 || y >= m_height) {
         return nullptr;
     }
@@ -382,70 +383,6 @@ Node* Pathfinding::NodeGraph::GetRandomNode()
 Pathfinding::PathAgent::~PathAgent()
 {
     currentNode = nullptr;
-}
-void Pathfinding::PathAgent::Update(float deltaTime)
-{
-    if (hasFinishedPath || m_path.empty() || m_path.isSingle()) {
-        return;
-    }
-
-    // Calculate distance to next waypoint 
-    Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex+1]->WorldPosition(), ownerPhysics->GetPosition());
-    float dist = Vector2DotProduct(diff, diff);
-    float travelDist = ownerPhysics->moveSpeed * deltaTime;
-
-    float movementDist = dist - (travelDist * travelDist);
-
-    // Still has distance until next waypoint
-    if (movementDist > 0) {
-        desiredDirection = Vector2Normalize(diff);
-
-        // Calculate the rotation to desired rotation
-        if (targetRotation == 0 && rotateInDesiredDirection) {
-            // Get angle to turn towards next node
-            targetRotation = atan2(desiredDirection.x, desiredDirection.y) - atan2(ownerPhysics->GetFacingDirection().x, ownerPhysics->GetFacingDirection().y);
-
-            if (targetRotation > PI) { targetRotation -= 2 * PI; }
-            else if (targetRotation <= -PI) { targetRotation += 2 * PI; }
-
-            rotatedAmount = 0;
-        }
-        // Rotate towards desired rotation
-        rotatedAmount += targetRotation * deltaTime * turnSpeed;
-        if (abs(rotatedAmount) <= abs(targetRotation) && rotateInDesiredDirection) {
-            ownerPhysics->Rotate(targetRotation * deltaTime * turnSpeed);
-            
-        }
-        // Move towards location
-        else {
-            ownerPhysics->AccelerateInDirection(desiredDirection);
-        }
-
-        
-    }
-    else {
-        m_currentIndex++;
-        currentNode = m_path.waypoints[m_currentIndex];
-
-        // Get angle to turn towards next node
-        targetRotation = 0;
-        rotatedAmount = 0;
-
-        // Path is finished
-        if (m_currentIndex == m_path.size()-1) {
-            ownerPhysics->SetPosition(m_path.waypoints[m_currentIndex]->WorldPosition());
-            m_path.setEmpty();
-            hasFinishedPath = true;
-        }
-        else {
-            // Find new direction to the node that was just found
-            Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex]->WorldPosition(), m_path.waypoints[m_currentIndex-1]->WorldPosition());
-            // Go towards that node by however much the last node was overshot by
-            float overshotDistance = movementDist == 0 ? 0 : sqrt(-movementDist);
-            ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2MultiplyV(Vector2Normalize(diff), { overshotDistance, overshotDistance })));
-        }
-    }
-
 }
 void Pathfinding::PathAgent::GoToNode(Node* target)
 {
@@ -479,6 +416,24 @@ void Pathfinding::PathAgent::GoTo(Vector2 point)
 
     }
 }
+
+void Pathfinding::PathAgent::SetPath(Path path)
+{
+    if (path.empty()) {
+        m_path = path;
+        m_currentIndex = 0;
+        hasFinishedPath = true;
+        return;
+    }
+    targetRotation == 0;
+
+    m_path = path;
+    //ownerPhysics->SetPosition(m_path.waypoints[0]->WorldPosition());
+    m_currentIndex = 0;
+    hasFinishedPath = false;
+}
+
+
 
 void Pathfinding::PathAgent::GeneratePath(Node* startNode, Node* endNode)
 {
@@ -542,8 +497,70 @@ void Pathfinding::PathAgent::GenerationThreadFinished(Path path)
     SetPath(path);
 }
 
+void Pathfinding::PathAgent::Update(float deltaTime)
+{
+    if (hasFinishedPath || m_path.empty() || m_path.isSingle()) {
+        return;
+    }
+
+    // Calculate distance to next waypoint 
+    Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex + 1]->WorldPosition(), ownerPhysics->GetPosition());
+    float dist = Vector2DotProduct(diff, diff);
+    float travelDist = ownerPhysics->moveSpeed * deltaTime;
+
+    float movementDist = dist - (travelDist * travelDist);
+
+    // Still has distance until next waypoint
+    if (movementDist > 0) {
+        desiredDirection = Vector2Normalize(diff);
+
+        // Calculate the rotation to desired rotation
+        if (targetRotation == 0 && rotateInDesiredDirection) {
+            // Get angle to turn towards next node
+            targetRotation = atan2(desiredDirection.x, desiredDirection.y) - atan2(ownerPhysics->GetFacingDirection().x, ownerPhysics->GetFacingDirection().y);
+
+            if (targetRotation > PI) { targetRotation -= 2 * PI; }
+            else if (targetRotation <= -PI) { targetRotation += 2 * PI; }
+
+            rotatedAmount = 0;
+        }
+        // Rotate towards desired rotation
+        rotatedAmount += targetRotation * deltaTime * turnSpeed;
+        if (abs(rotatedAmount) <= abs(targetRotation) && rotateInDesiredDirection) {
+            ownerPhysics->Rotate(targetRotation * deltaTime * turnSpeed);
+
+        }
+        // Move towards location
+        else {
+             ownerPhysics->AccelerateInDirection(desiredDirection);
+        }
 
 
+    }
+    else {
+        m_currentIndex++;
+        currentNode = m_path.waypoints[m_currentIndex];
+
+        // Get angle to turn towards next node
+        targetRotation = 0;
+        rotatedAmount = 0;
+
+        // Path is finished
+        if (m_currentIndex == m_path.size() - 1) {
+            //ownerPhysics->SetPosition(m_path.waypoints[m_currentIndex]->WorldPosition());
+            m_path.setEmpty();
+            hasFinishedPath = true;
+        }
+        else {
+            // Find new direction to the node that was just found
+            Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex]->WorldPosition(), m_path.waypoints[m_currentIndex - 1]->WorldPosition());
+            // Go towards that node by however much the last node was overshot by
+            float overshotDistance = movementDist == 0 ? 0 : sqrt(-movementDist);
+            //ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2MultiplyV(Vector2Normalize(diff), { overshotDistance, overshotDistance })));
+        }
+    }
+
+}
 
 void Pathfinding::PathAgent::Draw()
 {
@@ -570,18 +587,4 @@ void Pathfinding::PathAgent::DrawPath()
     // Draw end point
     DrawCircle((m_path.waypoints.back()->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints.back()->position.y + 0.5f) * GetParentCellSize(), 15 * (GetParentCellSize() / 50), RED);
 }
-void Pathfinding::PathAgent::SetPath(Path path)
-{
-    if (path.empty()) {
-        m_path = path;
-        m_currentIndex = 0;
-        hasFinishedPath = true;
-        return;
-    }
-    targetRotation == 0;
 
-    m_path = path;
-    //ownerPhysics->SetPosition(m_path.waypoints[0]->WorldPosition());
-    m_currentIndex = 0;
-    hasFinishedPath = false;
-}

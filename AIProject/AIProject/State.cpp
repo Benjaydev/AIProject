@@ -20,8 +20,11 @@ void State::Enter(Agent* agent)
 
 void State::Update(Agent* agent, float deltaTime)
 {
-    for (Behaviour* b : m_behaviours)
+    for (Behaviour* b : m_behaviours) {
         b->Update(agent, deltaTime);
+        b->Draw(agent);
+    }
+        
 }
 
 void State::Exit(Agent* agent)

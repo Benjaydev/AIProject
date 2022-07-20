@@ -33,8 +33,6 @@ void UtilityAI::Update(Agent* agent, float deltaTime)
             float eval = b->Evaluate(agent);
 
             weights[i] = eval;
-
-            DrawBehaviourValue(agent, i, eval);
         }
         newBehaviour = m_behaviours[GetIndexOfRandomisedWeights(weights, m_behaviours.size())];
     }

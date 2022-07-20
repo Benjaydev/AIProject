@@ -1,6 +1,6 @@
 #pragma once
 #include "PhysicsComponent.h"
-#include "raymath.h"
+//#include "raymath.h"
 #include "Game.h"
 
 
@@ -113,26 +113,27 @@ void PhysicsComponent::AccelerateInDirection(Vector2 direction)
 	Vector3 facing = { direction.x, direction.y, 1 };
 
 	// Get travel distance
-	facing = Vector3FloatMultiply(facing, moveSpeed);
+	facing = Vector3Scale(facing, moveSpeed);
 
 	// Add to acceleration
 	*acceleration = Vector3Add(*acceleration, facing);
 }
 
-void PhysicsComponent::Decelerate(float DeltaTime)
+void PhysicsComponent::Decelerate(float deltaTime)
 {
 	// Lower velocity
-	*velocity = Vector3FloatMultiply(*velocity, 1-(deceleration * DeltaTime));
+	*velocity = Vector3FloatMultiply(*velocity, 1-(deceleration*deltaTime));
 }
 
 void PhysicsComponent::CalculateVelocity(float DeltaTime)
 {
 	// Add the acceleration to the veocity
-	*velocity = Vector3Add(*velocity, *acceleration);
+	*velocity = Vector3Add(*velocity, Vector3Scale(*acceleration, DeltaTime));
 
 	// Decelerate velocity for this frame
 	Decelerate(DeltaTime);
 
+	
 
 	// Keep velocity within max speed //
 	float mag = Vector3Length(*velocity);
@@ -142,7 +143,7 @@ void PhysicsComponent::CalculateVelocity(float DeltaTime)
 		// Cap the speed at max speed for velocity
 		float speed = fminf(mag, maxSpeed);
 		// Set velocity to the speed
-		*velocity = Vector3FloatMultiply(norm, speed);
+		*velocity = Vector3Scale(norm, speed);
 	}
 	
 	// Reset the acceleration
@@ -256,6 +257,7 @@ Vector3 PhysicsComponent::Vector3FloatDivision(Vector3 v1, float f){
 
 void PhysicsComponent::GlobalCollisionCheck(float DeltaTime, bool shouldCullOffScreenObjects)
 {
+	// See if object is on screen (Can be seen by player)
 	RectangleCollider* screenRec = new RectangleCollider();
 	screenRec->Fit({ { Game::WorldBorders.x, Game::WorldBorders.y, 0 }, { Game::WorldBorders.z, Game::WorldBorders.w, 0 } });
 

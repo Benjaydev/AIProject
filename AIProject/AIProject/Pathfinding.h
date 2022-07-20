@@ -1,5 +1,5 @@
 #pragma once
-#include "raymath.h"
+//#include "raymath.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -131,9 +131,12 @@ namespace Pathfinding
 
         std::string obstacleTag = "";
 
+        Vector2 worldOffset;
+
+
         bool canUseDiagonals = false;
 
-        void GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag = "Obstacle", float collideSize = 2.0f);
+        void GenerateGrid(Vector2 dimensions, int cellSize, std::string collideTag = "Obstacle", float collideSize = 2.0f, Vector2 WorldOffset = {0,0});
 
         void Draw();
         void DrawPath(Path path, Color lineColor);

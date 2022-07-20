@@ -6,7 +6,7 @@ namespace Conditions {
     class Condition
     {
     public:
-        virtual bool IsTrue(Agent* agent) = 0;
+        virtual bool IsTrue(Agent* agent, float deltaTime) = 0;
     };
 
     class SqrDistanceCondition : public Condition
@@ -17,7 +17,21 @@ namespace Conditions {
 
     public:
         SqrDistanceCondition(float d, bool lt) : m_distance(d), m_lessThan(lt) {}
-        virtual bool IsTrue(Agent* agent);
+        virtual bool IsTrue(Agent* agent, float deltaTime);
+    };
+
+    class SeeCondition : public Condition
+    {
+    private:
+        float viewDistance;
+        float viewAngle;
+
+        float viewTime;
+        float viewTimeCount;
+
+    public:
+        SeeCondition(float vDistance, float vAngle, float vTime) : viewDistance(vDistance), viewAngle(vAngle), viewTime(vTime) {}
+        virtual bool IsTrue(Agent* agent, float deltaTime);
     };
 
 }

@@ -12,7 +12,8 @@ Player::Player()
 	((CircleCollider*)physics->collider)->radius = 20;
 
 	physics->deceleration = 10;
-
+	physics->moveSpeed = 1000;
+	
 	AddChild(spriteObject);
 	spriteObject->physics->SetRotation(-90 * DEG2RAD);
 	spriteObject->physics->SetPosition(-spriteObject->sprite->GetCentreOffset().x, spriteObject->sprite->GetCentreOffset().y);
