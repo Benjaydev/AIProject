@@ -29,7 +29,7 @@ Pathfinding::Path Pathfinding::DijkstrasGenerate(Node* startNode, Node* endNode)
     Node* currentNode;
 
     while (!openList.empty()) {
-        std::make_heap(openList.begin(), openList.end(), greater_than_Node_GScore());
+        std::sort(openList.begin(), openList.end(), less_than_Node_GScore());
 
         currentNode = openList[0];
 
@@ -48,7 +48,7 @@ Pathfinding::Path Pathfinding::DijkstrasGenerate(Node* startNode, Node* endNode)
                 float gScore = currentNode->gScore + edge.cost;
 
                 // If this node has not yet been visited
-                if (!std::binary_search(openList.begin(), openList.end(), edge.target)) {
+                if (std::find(openList.begin(), openList.end(), edge.target) == openList.end()) {
                     edge.target->gScore = gScore;
                     edge.target->lastNode = currentNode;
                     openList.push_back(edge.target);
@@ -95,11 +95,14 @@ Pathfinding::Path Pathfinding::AStarGenerate(Node* startNode, Node* endNode, flo
 
     Node* currentNode;
 
+    int nodeChecks = 0;
+
     while (!openList.empty()) {
         // Causes errors with too many ai in scene
-        std::make_heap(openList.begin(), openList.end(), greater_than_Node_FScore());
+        std::sort(openList.begin(), openList.end(), less_than_Node_FScore());
 
         currentNode = openList[0];
+       
 
         if (currentNode == endNode) {
             break;
@@ -118,7 +121,8 @@ Pathfinding::Path Pathfinding::AStarGenerate(Node* startNode, Node* endNode, flo
                 float fScore = gScore + hScore;
 
                 // If this node has not yet been visited
-                if (!std::binary_search(openList.begin(), openList.end(), edge.target)) {
+                if (std::find(openList.begin(), openList.end(), edge.target) == openList.end()) {
+                    nodeChecks++;
                     edge.target->gScore = gScore;
                     edge.target->fScore = fScore;
                     edge.target->lastNode = currentNode;
@@ -135,7 +139,7 @@ Pathfinding::Path Pathfinding::AStarGenerate(Node* startNode, Node* endNode, flo
         }
 
     }
-    
+
 
     Path path = Path();
     currentNode = endNode;
@@ -160,44 +164,53 @@ Path Pathfinding::PostPathSmooth(Path path)
     }
     Path newPath = Path();
     newPath.waypoints.push_back(path.waypoints[0]);
-
     int k = 0;
 
-    std::vector<Object*> collideObjects = std::vector<Object*>();
-    for (int i = 0; i < Game::objects.size(); i++) {
-        if (Game::objects[i]->tag == path.waypoints[0]->parent->obstacleTag && Game::objects[i]->physics->collider != nullptr) {
-            collideObjects.push_back(Game::objects[i]);
+
+    // Create colliders for all invalid nodes to be checked against ray
+    std::vector<Collider*> colliders = std::vector<Collider*>();
+    for (int i = 0; i < path.GetParentGraph()->GetGraphSizeInNodes(); i++) {
+        Node* node = path.GetParentGraph()->m_nodes[i];
+        if (node == nullptr) {
+            // Create collider for node
+            CircleCollider* gridCollider = new CircleCollider();
+            gridCollider->center = path.GetParentGraph()->GetWorldPositionAtIndex(i);
+            gridCollider->SetDiameter((path.GetParentGraph()->nodeCollideCheckSize) * path.GetParentGraph()->m_cellSize);
+            colliders.push_back(gridCollider);
         }
     }
-    
-    if (collideObjects.size() == 0) {
+    // There are no colliders, so start can go straight to end
+    if (colliders.size() == 0) {
         newPath.waypoints.push_back(path.waypoints[path.size() - 1]);
-        
         return newPath;
     }
+    
 
     // Search each node starting from the second
     for (int i = 1; i < path.size()-1; i++) {
-        // Check each collidable object
-        for (int j = 0; j < collideObjects.size(); j++) {
-            // Find difference between the starting node (k) and the node being checked (i+1)
-            Vector2 diff = Vector2Subtract(path.waypoints[i + 1]->WorldPosition(), newPath.waypoints[k]->WorldPosition());
+        // Find difference between the starting node (k) and the node being checked (i+1)
+        Vector2 diff = Vector2Subtract(path.waypoints[i + 1]->WorldPosition(), newPath.waypoints[k]->WorldPosition());
 
-            // Create ray collider from start to check node
-            RayCollider* ray = new RayCollider(newPath.waypoints[k]->WorldPosition(), Vector2Normalize(diff), Vector2Length(diff));
-            Hit out;
-           
+        // Create ray collider from start to check node
+        RayCollider* ray = new RayCollider(newPath.waypoints[k]->WorldPosition(), Vector2Normalize(diff), Vector2Length(diff));
+        Hit out;
+
+        // Check each collidable object
+        for (int j = 0; j < colliders.size(); j++) {       
             // If there is a collision
-            if (ray->Overlaps(collideObjects[j]->physics->collider, out)) {
+            if (ray->Overlaps(colliders[j], out)) {
                 // Increase the starting node
                 k++;
                 // Add the node before the check node (Because k cannot reach i+1, so it must keep i)
                 newPath.waypoints.push_back(path.waypoints[i]);
             }
-            delete ray;
+            
             // No collision, so start node stays at same place, and the next node will be checked
         }
+        delete ray;
     }
+    colliders.clear();
+
     // Add final node
     newPath.waypoints.push_back(path.waypoints[path.size()-1]);
     return newPath;
@@ -220,7 +233,7 @@ void Pathfinding::Node::ConnectTo(Node* other, float cost)
 }
 Vector2 Pathfinding::Node::WorldPosition()
 {
-    return { (position.x + 0.5f) * parent->m_cellSize, (position.y + 0.5f) * parent->m_cellSize };
+    return { ((position.x + 0.5f) * parent->m_cellSize)+parent->worldOffset.x, ((position.y + 0.5f) * parent->m_cellSize) + parent->worldOffset.y };
 }
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -238,6 +251,7 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
     m_nodes = new Node * [m_width * m_height];
     obstacleTag = collideTag;
     worldOffset = WorldOffset;
+    nodeCollideCheckSize = collideSize;
 
     // Find all objects that will cut the grid
     std::vector<Object*> collideObjects = std::vector<Object*>();
@@ -258,7 +272,7 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
             // Create collider for node
             CircleCollider* gridCollider = new CircleCollider();
             gridCollider->center = WorldPos;
-            gridCollider->SetDiameter(collideSize*m_cellSize);
+            gridCollider->SetDiameter(nodeCollideCheckSize*m_cellSize);
 
             bool hasHit = false;
 
@@ -351,18 +365,18 @@ void Pathfinding::NodeGraph::Draw()
         }
     }
 }
+
 Pathfinding::Node* Pathfinding::NodeGraph::GetClosestNode(Vector2 worldPos)
 {
-    int x = (int)((worldPos.x/ m_cellSize)-(worldOffset.x / m_cellSize));
+    int x = (int)((worldPos.x - worldOffset.x) / m_cellSize);
     if (x < 0 || x >= m_width) {
         return nullptr;
     }
 
-    int y = (int)(((worldPos.y- worldOffset.y) / m_cellSize));
+    int y = (int)((worldPos.y - worldOffset.y) / m_cellSize);
     if (y < 0 || y >= m_height) {
         return nullptr;
     }
-        
     return GetNode(x, y);
 }
 Node* Pathfinding::NodeGraph::GetRandomNode()
@@ -511,7 +525,7 @@ void Pathfinding::PathAgent::Update(float deltaTime)
     float movementDist = dist - (travelDist * travelDist);
 
     // Still has distance until next waypoint
-    if (movementDist > 0) {
+    if (movementDist > GetParentCellSize()/2) {
         desiredDirection = Vector2Normalize(diff);
 
         // Calculate the rotation to desired rotation
@@ -547,7 +561,7 @@ void Pathfinding::PathAgent::Update(float deltaTime)
 
         // Path is finished
         if (m_currentIndex == m_path.size() - 1) {
-            //ownerPhysics->SetPosition(m_path.waypoints[m_currentIndex]->WorldPosition());
+            ////ownerPhysics->SetPosition(m_path.waypoints[m_currentIndex]->WorldPosition());
             m_path.setEmpty();
             hasFinishedPath = true;
         }
@@ -556,7 +570,7 @@ void Pathfinding::PathAgent::Update(float deltaTime)
             Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex]->WorldPosition(), m_path.waypoints[m_currentIndex - 1]->WorldPosition());
             // Go towards that node by however much the last node was overshot by
             float overshotDistance = movementDist == 0 ? 0 : sqrt(-movementDist);
-            //ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2MultiplyV(Vector2Normalize(diff), { overshotDistance, overshotDistance })));
+            //ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2Scale(Vector2Normalize(diff), overshotDistance)));
         }
     }
 
@@ -578,13 +592,13 @@ void Pathfinding::PathAgent::DrawPath()
     {
         // Draw line from agent to next node 
         if (i == m_currentIndex + 1) {
-            DrawLineEx({ (m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize() }, ownerPhysics->GetPosition(), 10 * (GetParentCellSize() / 50), GREEN);
+            DrawLineEx({ ((m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.x, ((m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.y }, ownerPhysics->GetPosition(), 10 * (GetParentCellSize() / 50), GREEN);
             continue;
         }
         // Draw line from node to node
-        DrawLineEx({ (m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize() }, {(m_path.waypoints[i - 1]->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints[i - 1]->position.y + 0.5f) * GetParentCellSize() }, 10 * (GetParentCellSize() / 50), GREEN);
+        DrawLineEx({ ((m_path.waypoints[i]->position.x + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.x, ((m_path.waypoints[i]->position.y + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.y }, { ((m_path.waypoints[i-1]->position.x + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.x, ((m_path.waypoints[i-1]->position.y + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.y }, 10 * (GetParentCellSize() / 50), GREEN);
     }
     // Draw end point
-    DrawCircle((m_path.waypoints.back()->position.x + 0.5f) * GetParentCellSize(), (m_path.waypoints.back()->position.y + 0.5f) * GetParentCellSize(), 15 * (GetParentCellSize() / 50), RED);
+    DrawCircle(((m_path.waypoints.back()->position.x + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.x, ((m_path.waypoints.back()->position.y + 0.5f) * GetParentCellSize()) + parentGraph->worldOffset.y, 15 * (GetParentCellSize() / 50), RED);
 }
 

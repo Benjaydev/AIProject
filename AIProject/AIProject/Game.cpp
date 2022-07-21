@@ -33,7 +33,7 @@ void Game::Start()
 
 
     nodeGraph = new NodeGraph();
-    int cellSize = 25;
+    int cellSize = 30;
     nodeGraph->GenerateGrid({ (float)screenWidth*2.5f, (float)screenHeight*2.5f }, cellSize, "Obstacle", 2, {0, -600.0f});
 
     Timer timer;
@@ -51,7 +51,7 @@ void Game::Start()
         if (IsKeyPressed(KEY_SPACE)) {
             AIObject* testAI = new AIObject(nodeGraph);
             testAI->AIAgent->target = player;
-            testAI->physics->SetPosition({ 1000, 500 });
+            testAI->physics->SetPosition({ 0, -600 });
             //testAI->AIAgent->m_pathAgent->GoToNode(nodeGraph->GetNode(rand() % ((screenWidth / cellSize) - 1) + 1, rand() % ((screenHeight / cellSize) - 1) + 1));
             
             

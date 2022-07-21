@@ -87,14 +87,8 @@ namespace Pathfinding
     {
         inline bool operator() (const Node* node1, const Node* node2)
         {
-            if (node1->fScore > node2->fScore)
-                return true;
-            if (node2->fScore > node1->fScore)
-                return false;
-            return false;
+            return node1->fScore > node2->fScore;
 
-            bool val = (node1->fScore > node2->fScore);
-            return val;
         }
     };
 
@@ -107,12 +101,17 @@ namespace Pathfinding
         ~Path(){ waypoints.clear(); }
         std::vector<Node*> waypoints;
 
+
     public:
         int size() { return waypoints.size(); }
         bool empty() { return waypoints.empty(); }
         bool isSingle () { return waypoints.size() == 1; }
         void setEmpty() {
             waypoints = std::vector<Node*>();
+        }
+
+        NodeGraph* GetParentGraph() {
+            return waypoints[0]->parent;
         }
     };
 
@@ -126,6 +125,7 @@ namespace Pathfinding
 
         int m_width, m_height = 0;
         float m_cellSize = 0;
+        float nodeCollideCheckSize = 2.0f;
 
         Node** m_nodes;
 
@@ -141,17 +141,27 @@ namespace Pathfinding
         void Draw();
         void DrawPath(Path path, Color lineColor);
         Node* GetNode(int x, int y) { 
+
             if (x < 0 || x == m_width || y < 0 || y == m_height) {
                 return nullptr;
             }
             return m_nodes[x + m_width * y];
+        }
+
+        Vector2 GetWorldPositionAtIndex(int index) {
+            int x = index % m_width;
+            int y = index / m_width;
+
+            return { (m_cellSize * x) + worldOffset.x, (m_cellSize * y) + worldOffset.y };
         }
         
         Node* GetClosestNode(Vector2 worldPos);
 
         Node* GetRandomNode();
 
-
+        int GetGraphSizeInNodes() {
+            return m_width * m_height;
+        }
        
     };
     static float SqrDistanceHeuristic(Node* node, Node* end) {
@@ -159,7 +169,7 @@ namespace Pathfinding
         return Vector2DotProduct(diff, diff);
     }
     static float DistanceHeuristic(Node* node, Node* end) {
-        return Vector2Distance(end->position, node->position);
+        return Vector2Distance(end->WorldPosition(), node->WorldPosition());
     }
     static float ManhattenDistance(Node* node, Node* end) {
         float absx = abs(node->position.x - end->position.x);
@@ -176,7 +186,7 @@ namespace Pathfinding
         return 0;
     }
 
-    static float(*DefaultHeuristic)(Node*, Node*) = SqrDistanceHeuristic;
+    static float(*DefaultHeuristic)(Node*, Node*) = DistanceHeuristic;
 
 
      Path DijkstrasGenerate(Node* startNode, Node* endNode);
