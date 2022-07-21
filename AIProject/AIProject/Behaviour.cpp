@@ -1,5 +1,6 @@
 #include "Behaviour.h"
 #include "Agent.h"
+#include "Game.h"
 
 void Behaviours::WanderBehaviour::Enter(Agent* agent)
 {
@@ -51,6 +52,7 @@ void GoToPointBehaviour::Update(Agent* agent, float deltaTime)
 		Vector2 mousePos = GetMousePosition();
 
 		agent->pathAgent->GoTo({ mousePos.x, mousePos.y });
+		
 	}
 }
 
@@ -176,12 +178,42 @@ void Behaviours::LingerBehaviour::Update(Agent* agent, float deltaTime)
 		}
 	}
 
-
+	lifeTime -= deltaTime;
+	if (lifeTime <= 0) {
+		isFinished = true;
+	}
 
 }
 
 float Behaviours::LingerBehaviour::Evaluate(Agent* agent)
 {
-	return 0.0f;
+
+
+	return 0.5f;
 }
 
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// GO TO IMPORTANT LOCATION BEHAVIOUR
+void Behaviours::GoToImportantBehaviour::Enter(Agent* agent)
+{
+	if (Game::importantLocations.size() > 0) {
+		Vector2 randLoc = Game::importantLocations[rand() % Game::importantLocations.size()];
+		agent->pathAgent->GoToNode(agent->pathAgent->parentGraph->GetClosestNode(randLoc));
+	}
+
+	isFinished = false;
+}
+
+void Behaviours::GoToImportantBehaviour::Update(Agent* agent, float deltaTime)
+{
+	if (agent->pathAgent->hasFinishedPath) {
+		isFinished = true;
+	}
+}
+
+float Behaviours::GoToImportantBehaviour::Evaluate(Agent* agent)
+{
+	return 0.05f;
+}

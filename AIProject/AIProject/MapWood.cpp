@@ -152,35 +152,35 @@ MapWood::MapWood()
 
     // Garden walls
     // Entrance fences
-    new Wall(0, -17, 1, 17, 10, 0, (char*)"Images/FenceTile.png", 0x888888FF);
-    new Wall(3, -17, 1, 17, 10, 0, (char*)"Images/FenceTile.png", 0x888888FF);
+    new Wall(0, -17, 1, 17, 10, 45, (char*)"Images/FenceTile.png", 0x888888FF);
+    new Wall(3, -17, 1, 17, 10, 45, (char*)"Images/FenceTile.png", 0x888888FF);
 
     // Bush
     // Top left
-    new Wall(3, -17, 43, 1, 10, 90, (char*)"Images/BushTile.png", 0x888888FF);
+    new Wall(3, -17, 43, 1, 10, 45, (char*)"Images/BushTile.png", 0x888888FF);
 
     // Centre corner piece
     // Fences
-    new Wall(45, -5, 1, 5, 10, 0, (char*)"Images/FenceTile.png", 0x888888FF);
-    new Wall(46, 0, 5, 1, 10, 90, (char*)"Images/FenceTile.png", 0x888888FF);
+    new Wall(45, -5, 1, 5, 10, 45, (char*)"Images/FenceTile.png", 0x888888FF);
+    new Wall(46, 0, 5, 1, 10, 45, (char*)"Images/FenceTile.png", 0x888888FF);
 
     // Bush
-    new Wall(45, -16, 1, 5, 10, 90, (char*)"Images/BushTile.png", 0x888888FF);
-    new Wall(46, -12, 12, 1, 10, 90, (char*)"Images/BushTile.png", 0x888888FF);
-    new Wall(57, -11, 1, 11, 10, 90, (char*)"Images/BushTile.png", 0x888888FF);
-    new Wall(57, 0, 19, 1, 10, 90, (char*)"Images/BushTile.png", 0x888888FF);
+    new Wall(45, -16, 1, 5, 10, 45, (char*)"Images/BushTile.png", 0x888888FF);
+    new Wall(46, -12, 12, 1, 10, 45, (char*)"Images/BushTile.png", 0x888888FF);
+    new Wall(57, -11, 1, 11, 10, 45, (char*)"Images/BushTile.png", 0x888888FF);
+    new Wall(57, 0, 19, 1, 10, 45, (char*)"Images/BushTile.png", 0x888888FF);
 
     // Right
     //Bush
-    new Wall(75, 1, 1, 30, 10, 90, (char*)"Images/BushTile.png", 0x888888FF);
-    new Wall(46, 30, 29, 1, 10, 90, (char*)"Images/BushTile.png", 0x888888FF);
+    new Wall(75, 1, 1, 30, 10, 45, (char*)"Images/BushTile.png", 0x888888FF);
+    new Wall(46, 30, 29, 1, 10, 45, (char*)"Images/BushTile.png", 0x888888FF);
 
 
     // Bottom fences
-    new Wall(0, 31, 1, 4, 10, 0, (char*)"Images/FenceTile.png", 0x888888FF);
-    new Wall(25, 31, 1, 4, 10, 0, (char*)"Images/FenceTile.png", 0x888888FF);
+    new Wall(0, 31, 1, 4, 10, 45, (char*)"Images/FenceTile.png", 0x888888FF);
+    new Wall(25, 31, 1, 4, 10, 45, (char*)"Images/FenceTile.png", 0x888888FF);
 
-    new Wall(0, 35, 26, 1, 10, 90, (char*)"Images/FenceTile.png", 0x888888FF);
+    new Wall(0, 35, 26, 1, 10, 45, (char*)"Images/FenceTile.png", 0x888888FF);
 
     // Out of bounds
     // Invisible walls to block navigation outside of the map
@@ -207,19 +207,19 @@ void MapWood::Update(float DeltaTime)
 
 void MapWood::DrawBackground()
 {
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            if (i == 0) {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if (i == 0 || i == 1) {
                 DrawTexture(grassBackground, j * 1200 + BackgroundStartOffset.x, i * 800 + BackgroundStartOffset.y, WHITE);
             }
-            else if (j == 0) {
+            else if (j == 0 || j == 1) {
                 DrawTexture(grassBackground, j * 1200 + BackgroundStartOffset.x - 200, i * 800 + BackgroundStartOffset.y, WHITE);
             }
-            else if (i == 3) {
+            else if (i == 4 || i == 5) {
                 DrawTexture(grassBackground, j * 1200 + BackgroundStartOffset.x-200, i * 800 + BackgroundStartOffset.y-360, WHITE);
             }
-            else if (j == 3) {
-                DrawTexture(grassBackground, j * 1200 + BackgroundStartOffset.x - 760, i * 800 + BackgroundStartOffset.y, WHITE);
+            else if (j == 4 || j == 5) {
+                DrawTexture(grassBackground, j * 1200 + BackgroundStartOffset.x - 1000, i * 800 + BackgroundStartOffset.y, WHITE);
             }
             else {
                 DrawTexture(floorBackground, j * 1000 + BackgroundStartOffset.x, i * 800 + BackgroundStartOffset.y, WHITE);

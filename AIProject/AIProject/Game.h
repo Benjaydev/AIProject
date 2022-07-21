@@ -34,6 +34,8 @@ public:
 
 	RectangleCollider* screenRec = new RectangleCollider();
 
+	static std::vector<Vector2> importantLocations;
+
 	static Vector2 screenCenterOffset() {
 		return { (float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2 };
 	}

@@ -1,7 +1,7 @@
 #pragma once
 #include "Agent.h"
 #include "Object.h"
-#include "FiniteStateMachine.h"
+
 
 class AIObject : public Object
 {
@@ -12,7 +12,7 @@ public:
 	Object* spriteObject = new Object();
 
 
-	void CreateAIAgent(FiniteStateMachine* fsm);
+	void CreateAIAgent(Behaviour* beaviour);
 	void CreateAIAgent();
 	Agent* AIAgent;
 

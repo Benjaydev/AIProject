@@ -175,7 +175,7 @@ Path Pathfinding::PostPathSmooth(Path path)
             // Create collider for node
             CircleCollider* gridCollider = new CircleCollider();
             gridCollider->center = path.GetParentGraph()->GetWorldPositionAtIndex(i);
-            gridCollider->SetDiameter((path.GetParentGraph()->nodeCollideCheckSize) * path.GetParentGraph()->m_cellSize);
+            gridCollider->SetDiameter((path.GetParentGraph()->nodeCollideCheckSize/1.5f) * path.GetParentGraph()->m_cellSize);
             colliders.push_back(gridCollider);
         }
     }

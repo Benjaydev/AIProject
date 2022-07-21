@@ -17,6 +17,10 @@ namespace Behaviours {
 		virtual void Draw(Agent* agent) {};
 
 		std::string name = "Behaviour";
+
+		float duration = 3;
+		bool isFinished = false;
+
 	};
 
 
@@ -103,10 +107,34 @@ namespace Behaviours {
 		};
 		virtual void Enter(Agent* agent) {};
 		virtual void Update(Agent* agent, float deltaTime);
-		virtual void Exit(Agent* agent) {};
+		virtual void Exit(Agent* agent) { 
+			isFinished = false;
+			lifeTime = 10;
+		};
 
 		float cooldown = 2;
 		float cooldownCount = 0;
+
+		float lifeTime = 10;
+
+		virtual float Evaluate(Agent* agent);
+	};
+	
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	// GO TO IMPORTANT LOCATION BEHAVIOUR
+	class GoToImportantBehaviour : public Behaviour
+	{
+	public:
+		GoToImportantBehaviour() {
+			name = "GoToImportant";
+		};
+		virtual void Enter(Agent* agent);
+		virtual void Update(Agent* agent, float deltaTime);
+		virtual void Exit(Agent* agent) { isFinished = false; };
+
+		bool started = false;
 
 		virtual float Evaluate(Agent* agent);
 	};

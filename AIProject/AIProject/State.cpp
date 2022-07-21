@@ -22,13 +22,19 @@ void State::Update(Agent* agent, float deltaTime)
 {
     for (Behaviour* b : m_behaviours) {
         b->Update(agent, deltaTime);
-        b->Draw(agent);
     }
         
 }
 
 void State::Exit(Agent* agent)
 {
+}
+
+void State::Draw(Agent* agent)
+{
+    for (Behaviour* b : m_behaviours) {
+        b->Draw(agent);
+    }
 }
 
 void State::AddTransition(Condition* condition, State* state)

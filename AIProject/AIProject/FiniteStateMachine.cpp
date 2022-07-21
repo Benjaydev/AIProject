@@ -37,6 +37,14 @@ void FiniteStateMachine::Update(Agent* agent, float deltaTime)
     m_currentState->Update(agent, deltaTime);
 }
 
+void FiniteStateMachine::Draw(Agent* agent)
+{
+    if (m_currentState != nullptr) {
+        m_currentState->Draw(agent);
+    }
+    
+}
+
 void FiniteStateMachine::Enter(Agent* agent)
 {
     m_currentState->Enter(agent);

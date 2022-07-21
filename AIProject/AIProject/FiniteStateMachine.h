@@ -21,4 +21,5 @@ public:
 
     virtual void Enter(Agent* agent);
     void Update(Agent* agent, float deltaTime);
+    virtual void Draw(Agent* agent);
 };

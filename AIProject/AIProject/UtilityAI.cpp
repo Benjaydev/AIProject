@@ -22,9 +22,7 @@ void UtilityAI::Update(Agent* agent, float deltaTime)
 {
     // Find new behaviour
     Behaviour* newBehaviour = nullptr;
-    cooldownCount += deltaTime;
-    if (cooldownCount >= cooldown || currentBehaviour == nullptr) {
-        cooldownCount = 0;
+    if (currentBehaviour == nullptr || currentBehaviour->isFinished) {
         
         float* weights = new float[m_behaviours.size()];
         for (int i = 0; i < m_behaviours.size(); i++)
@@ -34,13 +32,16 @@ void UtilityAI::Update(Agent* agent, float deltaTime)
 
             weights[i] = eval;
         }
+        
         newBehaviour = m_behaviours[GetIndexOfRandomisedWeights(weights, m_behaviours.size())];
+
+        delete[] weights;
     }
     
 
 
     // If there is new behaviour
-    if (newBehaviour != nullptr && newBehaviour != currentBehaviour)
+    if (newBehaviour != nullptr)
     {
         // Exit current behaviour
         if (currentBehaviour) {
@@ -59,9 +60,13 @@ void UtilityAI::Update(Agent* agent, float deltaTime)
 
 void UtilityAI::DrawBehaviourValue(Agent* agent, int behaviourIndex, float behaviourValue)
 {
-    std::string text = m_behaviours[behaviourIndex]->name + ": " + std::to_string(behaviourValue);
+    Color textColour = BLACK;
+    if (m_behaviours[behaviourIndex]->name == currentBehaviour->name) {
+        textColour = RED;
+    }
 
-    DrawText(text.c_str(), agent->pathAgent->ownerPhysics->GetPosition().x + 30, agent->pathAgent->ownerPhysics->GetPosition().y - 20 + (behaviourIndex*15), 16, BLACK);
+    std::string text = m_behaviours[behaviourIndex]->name + ": " + std::to_string(behaviourValue);
+    DrawText(text.c_str(), agent->pathAgent->ownerPhysics->GetPosition().x + 30, agent->pathAgent->ownerPhysics->GetPosition().y - 20 + (behaviourIndex*15), 16, textColour);
 }
 
 void UtilityAI::Draw(Agent* agent)

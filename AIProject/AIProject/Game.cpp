@@ -1,11 +1,12 @@
 #include "Game.h"
 #include "Timer.h"
-#include "AIObject.h"
+#include "AICivilian.h"
 #include "Behaviour.h"
 using namespace Behaviours;
 
 
 std::vector<Object*> Game::objects = std::vector<Object*>();
+std::vector<Vector2> Game::importantLocations = std::vector<Vector2>();
 int Game::lifetimeObjectCount = 0;;
 bool Game::DebugActive = false;
 Vector4 Game::WorldBorders = { 0, 0, 0, 0 };
@@ -42,6 +43,13 @@ void Game::Start()
     player->physics->SetPosition({ 150, 150 });
 
     
+    importantLocations.push_back({851, 275});
+    importantLocations.push_back({441, -334});
+    importantLocations.push_back({1392, -332});
+    importantLocations.push_back({2151, -323});
+    importantLocations.push_back({2452, 344});
+    importantLocations.push_back({2434, 925});
+    importantLocations.push_back({1444, 886});
     
 
     while (!WindowShouldClose()) {
@@ -57,7 +65,7 @@ void Game::Start()
         }
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
-
+            std::cout << mousePos.x << ", " << mousePos.y << std::endl;
             player->physics->SetPosition(mousePos);
         }
         
@@ -65,7 +73,7 @@ void Game::Start()
             Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
             /*Wall* wall = new Wall(mousePos.x, mousePos.y, 100, 100, 1, 0, (char*)"Images/WhitePixel.png");*/
 
-            AIObject* testAI = new AIObject(nodeGraph);
+            AICivilian* testAI = new AICivilian(nodeGraph);
             testAI->AIAgent->target = player;
             testAI->physics->SetPosition(mousePos);
         }
