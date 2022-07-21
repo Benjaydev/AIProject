@@ -1,6 +1,6 @@
 #include "Wall.h"
 
-Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rotation, char* textureFileName, int colour)
+Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rotation, char* textureFileName, int colour, bool shouldTile)
 {
     // Load image that is one pixel big
     LoadSprite(textureFileName);
@@ -10,6 +10,7 @@ Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rot
     sprite->tiling = { (float)tileWidth, (float)tileHeight };
     sprite->SetScale(scale);
     sprite->tiledSpriteRotation = rotation;
+    sprite->shouldTile = shouldTile;
 
     sprite->colour = GetColor(colour);
 

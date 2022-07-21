@@ -525,7 +525,7 @@ void Pathfinding::PathAgent::Update(float deltaTime)
     float movementDist = dist - (travelDist * travelDist);
 
     // Still has distance until next waypoint
-    if (movementDist > GetParentCellSize()/2) {
+    if (movementDist > 0) {
         desiredDirection = Vector2Normalize(diff);
 
         // Calculate the rotation to desired rotation
@@ -545,9 +545,7 @@ void Pathfinding::PathAgent::Update(float deltaTime)
 
         }
         // Move towards location
-        else {
-             ownerPhysics->AccelerateInDirection(desiredDirection);
-        }
+        ownerPhysics->AccelerateInDirection(desiredDirection);
 
 
     }
@@ -561,7 +559,7 @@ void Pathfinding::PathAgent::Update(float deltaTime)
 
         // Path is finished
         if (m_currentIndex == m_path.size() - 1) {
-            ////ownerPhysics->SetPosition(m_path.waypoints[m_currentIndex]->WorldPosition());
+            ownerPhysics->SetPosition(m_path.waypoints[m_currentIndex]->WorldPosition());
             m_path.setEmpty();
             hasFinishedPath = true;
         }
@@ -570,7 +568,7 @@ void Pathfinding::PathAgent::Update(float deltaTime)
             Vector2 diff = Vector2Subtract(m_path.waypoints[m_currentIndex]->WorldPosition(), m_path.waypoints[m_currentIndex - 1]->WorldPosition());
             // Go towards that node by however much the last node was overshot by
             float overshotDistance = movementDist == 0 ? 0 : sqrt(-movementDist);
-            //ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2Scale(Vector2Normalize(diff), overshotDistance)));
+            ownerPhysics->SetPosition(Vector2Add(ownerPhysics->GetPosition(), Vector2Scale(Vector2Normalize(diff), overshotDistance)));
         }
     }
 

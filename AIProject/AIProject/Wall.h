@@ -3,7 +3,7 @@
 class Wall : public Obstacle
 {
 public:
-	Wall(float x, float y, int width, int height, int scale, float rotation, char* textureFileName, int colour = 0x4E3524FF);
+	Wall(float x, float y, int width, int height, int scale, float rotation, char* textureFileName, int colour = 0xFFFFFFFF, bool shouldTile = true);
 	virtual ~Wall();
 
 

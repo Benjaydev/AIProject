@@ -13,7 +13,7 @@ AIObject::AIObject(NodeGraph* graph)
 
     physics->SetCollider(cType::Circle);
     ((CircleCollider*)physics->collider)->center = physics->GetPosition();
-    ((CircleCollider*)physics->collider)->radius = 25;
+    ((CircleCollider*)physics->collider)->radius = 20;
 
     CreateAIAgent();
     AIAgent->pathAgent->SetParentGraph(graph);
@@ -50,8 +50,8 @@ AIObject::AIObject(NodeGraph* graph)
 
 	AddToGameWorld();
 
-    physics->deceleration = 3;
-    physics->moveSpeed = 250;
+    physics->deceleration = 10;
+    physics->moveSpeed = 1000;
 
 
 }

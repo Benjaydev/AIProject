@@ -7,7 +7,7 @@ using namespace Behaviours;
 
 std::vector<Object*> Game::objects = std::vector<Object*>();
 int Game::lifetimeObjectCount = 0;;
-bool Game::DebugActive = true;
+bool Game::DebugActive = false;
 Vector4 Game::WorldBorders = { 0, 0, 0, 0 };
 
 Game::Game()
@@ -27,14 +27,13 @@ void Game::Start()
 
     InitWindow(screenWidth, screenHeight, "AI Project");
 
-
     map1 = new MapWood();
     currentMap = (Map*)map1;
 
 
     nodeGraph = new NodeGraph();
-    int cellSize = 30;
-    nodeGraph->GenerateGrid({ (float)screenWidth*2.5f, (float)screenHeight*2.5f }, cellSize, "Obstacle", 2, {0, -600.0f});
+    int cellSize = 25;
+    nodeGraph->GenerateGrid({ (float)screenWidth*2.5f, (float)screenHeight*2.5f }, cellSize, "Obstacle", 1.75f, {0, -600.0f});
 
     Timer timer;
 
@@ -58,14 +57,24 @@ void Game::Start()
         }
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
-            //Wall* wall = new Wall(mousePos.x, mousePos.y, 100, 900, 1, 0, (char*)"Images/WhitePixel.png");
 
             player->physics->SetPosition(mousePos);
+        }
+        
+        if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
+            Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
+            /*Wall* wall = new Wall(mousePos.x, mousePos.y, 100, 100, 1, 0, (char*)"Images/WhitePixel.png");*/
 
-            
+            AIObject* testAI = new AIObject(nodeGraph);
+            testAI->AIAgent->target = player;
+            testAI->physics->SetPosition(mousePos);
+        }
+
+        if (IsKeyPressed(KEY_J)) {
+            DebugActive = !DebugActive;
         }
         if (IsKeyPressed(KEY_G)) {
-            nodeGraph->GenerateGrid({ (float)screenWidth * 3, (float)screenHeight * 3 }, cellSize, "Obstacle");
+            nodeGraph->GenerateGrid({ (float)screenWidth * 2.5f, (float)screenHeight * 2.5f }, cellSize, "Obstacle", 1.75f, { 0, -600.0f });
         }
 
 
@@ -135,7 +144,10 @@ void Game::Draw() {
         }
     }
 
-    nodeGraph->Draw();
+    if (DebugActive) {
+        nodeGraph->Draw();
+    }
+    
     EndMode2D();
     EndDrawing();
 }

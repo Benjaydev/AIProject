@@ -213,7 +213,7 @@ void Object::Draw()
 			// Draw to screen
 
 			// No tiling texture
-			if (sprite->tiling.x == 1 && sprite->tiling.y == 1) {
+			if (!sprite->shouldTile) {
 				DrawTextureEx(*sprite->texture, position, rotation * RAD2DEG, 1, sprite->colour);
 			}
 			// Tiling texture

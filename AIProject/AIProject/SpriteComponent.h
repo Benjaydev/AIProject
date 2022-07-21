@@ -11,6 +11,7 @@ public:
     Color colour = WHITE;
 
     Vector2 tiling = { 1,1 };
+    bool shouldTile = false;
     float tiledSpriteRotation = 0;
 
 
