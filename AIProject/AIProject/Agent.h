@@ -34,10 +34,9 @@ public:
     PathAgent* pathAgent;
     Object* target;
 
-
-
-private:
     Behaviour* currentBehaviour;
     Color m_colour = ORANGE;
+
+
 };
 

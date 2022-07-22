@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Timer.h"
 #include "AICivilian.h"
+#include "AISecurityGuard.h"
 #include "Behaviour.h"
 using namespace Behaviours;
 
@@ -34,7 +35,7 @@ void Game::Start()
 
     nodeGraph = new NodeGraph();
     int cellSize = 25;
-    nodeGraph->GenerateGrid({ (float)screenWidth*2.5f, (float)screenHeight*2.5f }, cellSize, "Obstacle", 1.75f, {0, -600.0f});
+    nodeGraph->GenerateGrid({ (float)screenWidth*2.5f, (float)screenHeight*2.5f }, cellSize, "Obstacle", 2.0f, {0, -600.0f});
 
     Timer timer;
 
@@ -73,7 +74,7 @@ void Game::Start()
             Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
             /*Wall* wall = new Wall(mousePos.x, mousePos.y, 100, 100, 1, 0, (char*)"Images/WhitePixel.png");*/
 
-            AICivilian* testAI = new AICivilian(nodeGraph);
+            AISecurityGuard* testAI = new AISecurityGuard(nodeGraph);
             testAI->AIAgent->target = player;
             testAI->physics->SetPosition(mousePos);
         }
@@ -116,7 +117,6 @@ void Game::ResetGameObjects() {
 
 
 void Game::Update() {
-    //std::cout << "Update start" << std::endl;
     Vector2 min = GetScreenToWorld2D({ 0,0 }, player->camera);
     Vector2 max = GetScreenToWorld2D({ (float)GetScreenWidth(),(float)GetScreenHeight()}, player->camera);
     WorldBorders.x = min.x;
@@ -132,7 +132,6 @@ void Game::Update() {
     
     PhysicsComponent::GlobalCollisionCheck(DeltaTime);
 
-    //std::cout << "Update end" << std::endl;
 }
 
 

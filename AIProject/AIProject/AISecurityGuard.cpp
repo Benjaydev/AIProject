@@ -1,13 +1,15 @@
-#include "AICivilian.h"
+#include "AISecurityGuard.h"
 #include "Condition.h"
 #include "State.h"
 #include "UtilityAI.h"
 #include "FiniteStateMachine.h"
-using namespace Conditions;
 
-AICivilian::AICivilian(NodeGraph* graph) : AIObject(graph) {
+AISecurityGuard::AISecurityGuard(NodeGraph* graph) : AIObject(graph)
+{
     spriteObject->LoadSprite((char*)"Images/CharacterM2.png");
     spriteObject->sprite->SetScale(0.5f);
+
+    SetCostume("Security");
 
     InitSprites();
 
@@ -18,15 +20,16 @@ AICivilian::AICivilian(NodeGraph* graph) : AIObject(graph) {
 
     UtilityAI* utilityUnAlert = new UtilityAI();
     utilityUnAlert->AddBehaviour(new GoToImportantBehaviour());
-    utilityUnAlert->AddBehaviour(new LingerBehaviour(50)); 
-    
+    utilityUnAlert->AddBehaviour(new LingerBehaviour(50));
+
     UtilityAI* utilityAlert = new UtilityAI();
-    utilityAlert->AddBehaviour(new FleeTargetBehaviour(20));
+    utilityAlert->AddBehaviour(new FollowTargetBehaviour(10));
+    utilityAlert->AddBehaviour(new SearchAreaBehaviour(200));
 
     // register these states with the FSM, so its responsible for deleting them now
     State* UnAlertState = new State(utilityUnAlert);
     State* AlertState = new State(utilityAlert);
-    
+
     UnAlertState->AddTransition(seesSuspiciousTarget, AlertState);
     //AlertState->AddTransition(furtherThan15, UnAlertState);
 

@@ -1,15 +1,14 @@
 #pragma once
 #include "Agent.h"
-#include "Object.h"
+#include "GameObject.h"
 
 
-class AIObject : public Object
+class AIObject : public GameObject
 {
 public:
 	AIObject(NodeGraph* graph);
 	virtual ~AIObject();
 
-	Object* spriteObject = new Object();
 
 
 	void CreateAIAgent(Behaviour* beaviour);
@@ -18,6 +17,9 @@ public:
 
 	void Update(float DeltaTime) override;
 	void Draw() override;
+
+	int AIInstanceID = 0;
+	static std::vector<AIObject*> WorldAIInstances;
 
 };
 

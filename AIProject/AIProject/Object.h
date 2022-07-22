@@ -62,6 +62,7 @@ public:
 	// Sprites
 	void LoadSprite(char* filename);
 	void CopySpriteByReference(SpriteComponent* s);
+	void CreateSpriteFromTexture(Texture2D texture);
 
 
 	// Operator overloads for vector operations

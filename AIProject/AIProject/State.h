@@ -22,6 +22,7 @@ public:
         m_behaviours.push_back(behaviour);
     };
     ~State();
+
     virtual void Enter(Agent* agent);
     virtual void Update(Agent* agent, float deltaTime);
     virtual void Exit(Agent* agent);
@@ -29,6 +30,11 @@ public:
     virtual void Draw(Agent* agent);
 
     void AddTransition(Condition* condition, State* state);
+
+
+    std::string GetBehaviourName(int index) {
+        return m_behaviours[index]->name;
+    }
 
     std::vector<Transition> GetTransitions() {
         return m_transitions;

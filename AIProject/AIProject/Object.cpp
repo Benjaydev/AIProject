@@ -93,6 +93,11 @@ void Object::DeleteChild(Object* child) {
 
 
 void Object::ParentTo(Object* p) {
+	if (parent == p) {
+		return;
+	}
+
+
 	// Set parent
 	parent = p;
 
@@ -141,8 +146,10 @@ void Object::SetIsOnScreen(bool state)
 
 
 void Object::LoadSprite(char* filename) {
-	// Create sprite component and load image
-	sprite = new SpriteComponent();
+	if (sprite == nullptr) {
+		// Create sprite component and load image
+		sprite = new SpriteComponent();
+	}
 	sprite->Load(filename);
 	hasSprite = true;
 	
@@ -150,8 +157,10 @@ void Object::LoadSprite(char* filename) {
 
 void Object::CopySpriteByReference(SpriteComponent* s)
 {
-	// Create new sprite component
-	sprite = new SpriteComponent();
+	if (sprite == nullptr) {
+		// Create sprite component and set texture
+		sprite = new SpriteComponent();
+	}
 
 	// Copy texture from reference
 	*sprite->texture = LoadTextureFromImage(*s->image);
@@ -159,6 +168,17 @@ void Object::CopySpriteByReference(SpriteComponent* s)
 	sprite->defaultWidth = s->defaultWidth;
 	sprite->defaultHeight = s->defaultHeight;
 
+	hasSprite = true;
+	usesReferencedSprite = true;
+}
+
+void Object::CreateSpriteFromTexture(Texture2D texture)
+{
+	if (sprite == nullptr) {
+		// Create sprite component and set texture
+		sprite = new SpriteComponent();
+	}
+	*sprite->texture = texture;
 	hasSprite = true;
 	usesReferencedSprite = true;
 }

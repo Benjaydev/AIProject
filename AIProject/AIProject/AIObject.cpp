@@ -1,7 +1,11 @@
 #include "AIObject.h"
+std::vector<AIObject*> AIObject::WorldAIInstances;
 
-AIObject::AIObject(NodeGraph* graph)
+AIObject::AIObject(NodeGraph* graph) : GameObject()
 {
+	WorldAIInstances.push_back(this);
+	AIInstanceID = WorldAIInstances.size() - 1;
+
 	tag = "AI";
 
     physics->SetCollider(cType::Circle);

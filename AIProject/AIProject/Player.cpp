@@ -1,11 +1,14 @@
 #include "Player.h"
 
-Player::Player()
+Player::Player() : GameObject()
 {
 	tag = "Player";
 
 	spriteObject->LoadSprite((char*)"Images/Agent74.png");
 	spriteObject->sprite->SetScale(0.5f);
+
+
+	InitSprites();
 
 	physics->SetCollider(cType::Circle);
 	((CircleCollider*)physics->collider)->center = physics->GetPosition();
@@ -13,10 +16,6 @@ Player::Player()
 
 	physics->deceleration = 10;
 	physics->moveSpeed = 1000;
-	
-	AddChild(spriteObject);
-	spriteObject->physics->SetRotation(-90 * DEG2RAD);
-	spriteObject->physics->SetPosition(-spriteObject->sprite->GetCentreOffset().x, spriteObject->sprite->GetCentreOffset().y);
 	
 
 	AddToGameWorld();
@@ -50,6 +49,12 @@ void Player::Update(float DeltaTime)
 	}
 	if (IsKeyDown(KEY_D)) {
 		physics->AccelerateInDirection({ 1, 0 });
+	}
+	if (IsKeyPressed(KEY_ONE)) {
+		SetWeapon("");
+	}
+	if (IsKeyPressed(KEY_TWO)) {
+		SetWeapon("Pistol");
 	}
 
 	

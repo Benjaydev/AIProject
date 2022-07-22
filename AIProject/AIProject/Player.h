@@ -1,14 +1,14 @@
 #pragma once
-#include "Object.h"
-class Player : public Object
+#include "GameObject.h"
+class Player : public GameObject
 {
 public:
 	Player();
 	virtual ~Player();
 
-	Object* spriteObject = new Object();
-
 	Camera2D camera;
+
+	std::vector<std::string> weapons;
 
 
 	void Update(float DeltaTime) override;

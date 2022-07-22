@@ -25,16 +25,18 @@ void FiniteStateMachine::Update(Agent* agent, float deltaTime)
             
     }
 
-    // if we've changed state, clean up the old one and initialise the new one
-    if (newState != nullptr && newState != m_currentState)
+    // Clean up the old one and initialise the new one
+    if (newState != nullptr)
     {
         m_currentState->Exit(agent);
         m_currentState = newState;
+
         m_currentState->Enter(agent);
     }
 
     // update the current state
     m_currentState->Update(agent, deltaTime);
+    name = m_currentState->GetBehaviourName(0);
 }
 
 void FiniteStateMachine::Draw(Agent* agent)

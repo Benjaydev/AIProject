@@ -64,12 +64,15 @@ float Behaviours::GoToPointBehaviour::Evaluate(Agent* agent)
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 //------------------------------------------------------------------
-// FOLOW TARGET BEHAVIOUR
+// FOLLOW TARGET BEHAVIOUR
 void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 {
-	agent->FaceTarget();
+	if (Evaluate(agent) == 0) {
+		isFinished = true;
+	}
+
 	cooldownCount += deltaTime;
-	if (cooldownCount < cooldown) {
+	if (cooldownCount < cooldown && !agent->pathAgent->hasFinishedPath) {
 		return;
 	}
 	cooldownCount = 0;
@@ -78,7 +81,7 @@ void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 	// if so we want to repath towards it
 	Object* target = agent->target;
 
-	Vector2 diff = target->physics->GetPosition(), lastTargetPosition;
+	Vector2 diff = Vector2Subtract(target->physics->GetPosition(), lastTargetPosition);
 	float dist = Vector2DotProduct(diff, diff);
 	float cellSize = agent->pathAgent->parentGraph->m_cellSize;
 	if (dist > (cellSize * cellSize))
@@ -88,13 +91,11 @@ void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 	}
 
 }
-void FollowTargetBehaviour::Exit(Agent* agent)
-{
-	agent->pathAgent->rotateInDesiredDirection = true;
-}
+
 void FollowTargetBehaviour::Enter(Agent* agent)
 {
-	agent->pathAgent->rotateInDesiredDirection = false;
+	agent->pathAgent->rotateInDesiredDirection = true;
+	cooldownCount = cooldown;
 
 	// red when following
 	agent->SetColour({ 255,0,0,255 });
@@ -109,10 +110,81 @@ float FollowTargetBehaviour::Evaluate(Agent* agent)
 
 	// Get value between 0-1
 	float cellDist = distanceToEnter * agent->pathAgent->parentGraph->m_cellSize;
-	float eval = 1 - fminf(1, sqrDist / (cellDist*cellDist));
 
-	return eval;
+	return sqrDist < (cellDist* cellDist);
 }
+
+
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// FLEE TARGET BEHAVIOUR
+void FleeTargetBehaviour::Enter(Agent* agent)
+{
+	cooldown = rand() % 5 + 3;
+	cooldownCount = cooldown;
+	agent->pathAgent->rotateInDesiredDirection = true;
+}
+
+void FleeTargetBehaviour::Update(Agent* agent, float deltaTime)
+{
+	cooldownCount += deltaTime;
+	if (cooldownCount < cooldown && !agent->pathAgent->hasFinishedPath) {
+		return;
+	}
+	cooldownCount = 0;
+
+	// check if the agent has moved significantly from its last position
+	// if so we want to repath towards it
+	Object* target = agent->target;
+
+	Vector2 diff = Vector2Subtract(target->physics->GetPosition(), agent->pathAgent->ownerPhysics->GetPosition());
+	float dist = Vector2DotProduct(diff, diff);
+	float cellSize = agent->pathAgent->parentGraph->m_cellSize;
+
+
+	Vector2 dir = Vector2Negate(Vector2Normalize(diff));
+	Vector2 fleeCheckPoint = Vector2Add(agent->pathAgent->ownerPhysics->GetPosition(), Vector2Scale(dir, 200));
+
+	// Attempt to find location to flee to
+	Node* gotonode = nullptr;
+	for (int i = 0; gotonode == nullptr && i < 100; i++)
+	{
+		float randomDist = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 50));
+
+		// Create random direction from -1 to 1 for x and y
+		Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f),((rand() % 2000 - 1000) / 1000.0f) };
+		Vector2 location = Vector2Add(fleeCheckPoint, Vector2Scale(randDir, randomDist));
+
+		gotonode = agent->pathAgent->parentGraph->GetClosestNode(location);
+	}
+
+	if (gotonode == nullptr) {
+		agent->FaceTarget();
+	}
+
+	agent->pathAgent->GoToNode(gotonode);
+	gotonode = nullptr;
+}
+
+
+float FleeTargetBehaviour::Evaluate(Agent* agent)
+{
+	Object* target = agent->target;
+	Vector2 diff = Vector2Subtract(target->physics->GetPosition(), agent->pathAgent->ownerPhysics->GetPosition());
+	float sqrDist = Vector2DotProduct(diff, diff);
+
+	// Get value between 0-1
+	float cellDist = distanceToEnter * agent->pathAgent->parentGraph->m_cellSize;
+
+	return sqrDist < (cellDist*cellDist);
+}
+
+
+
+
+
+
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -214,6 +286,52 @@ void Behaviours::GoToImportantBehaviour::Update(Agent* agent, float deltaTime)
 }
 
 float Behaviours::GoToImportantBehaviour::Evaluate(Agent* agent)
+{
+	return 0.05f;
+}
+
+
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// SEARCH AREA BEHAVIOUR
+void Behaviours::SearchAreaBehaviour::Enter(Agent* agent)
+{
+	searchArea = agent->pathAgent->ownerPhysics->GetPosition();
+}
+
+void Behaviours::SearchAreaBehaviour::Update(Agent* agent, float deltaTime)
+{
+	if (agent->pathAgent->hasFinishedPath) {
+		cooldownCount += deltaTime;
+		if (cooldownCount >= cooldown) {
+			Node* gotonode = nullptr;
+
+			for (int i = 0; gotonode == nullptr && i < 100; i++)
+			{
+				float randomDist = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / radius));
+
+				// Create random direction from -1 to 1 for x and y
+				Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f),((rand() % 2000 - 1000) / 1000.0f)};
+				Vector2 location = Vector2Add(searchArea, Vector2Scale(randDir, randomDist));
+
+				gotonode = agent->pathAgent->parentGraph->GetClosestNode(location);
+			}
+
+			agent->pathAgent->GoToNode(gotonode);
+
+
+			cooldownCount = 0;
+			cooldown = rand() % 3 + 1;
+			gotonode = nullptr;
+
+
+			isFinished = true;
+		}
+	}
+}
+
+float Behaviours::SearchAreaBehaviour::Evaluate(Agent* agent)
 {
 	return 0.05f;
 }

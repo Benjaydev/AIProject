@@ -21,6 +21,8 @@ namespace Behaviours {
 		float duration = 3;
 		bool isFinished = false;
 
+		virtual std::string GetName(){return name; }
+
 	};
 
 
@@ -42,7 +44,7 @@ namespace Behaviours {
 		int distanceToExit = 0;
 
 		float cooldown = 2;
-		float cooldownCount = 0;
+		float cooldownCount = 2;
 
 		virtual float Evaluate(Agent* agent);
 
@@ -80,14 +82,44 @@ namespace Behaviours {
 		}
 		virtual void Enter(Agent* agent);
 		virtual void Update(Agent* agent, float deltaTime);
-		virtual void Exit(Agent* agent);;
+		virtual void Exit(Agent* agent) {
+			isFinished = false;
+		};
 
 		Vector2 lastTargetPosition;
 
 		int distanceToEnter = 0;
 
-		float cooldown = .1;
-		float cooldownCount = 0;
+		float cooldown = 2;
+		float cooldownCount = 2;
+
+		virtual float Evaluate(Agent* agent);
+	};
+	
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	// FLEE TARGET BEHAVIOUR
+	class FleeTargetBehaviour : public Behaviour
+	{
+	public:
+		FleeTargetBehaviour(int cellDistance) {
+			distanceToEnter = cellDistance;
+			name = "Flee"; 
+
+		
+		}
+		FleeTargetBehaviour() {
+			name = "Flee";
+		}
+		virtual void Enter(Agent* agent);
+		virtual void Update(Agent* agent, float deltaTime);
+		virtual void Exit(Agent* agent){};
+
+		int distanceToEnter = 0;
+
+		float cooldown = 5;
+		float cooldownCount = 5;
 
 		virtual float Evaluate(Agent* agent);
 	};
@@ -113,7 +145,38 @@ namespace Behaviours {
 		};
 
 		float cooldown = 2;
-		float cooldownCount = 0;
+		float cooldownCount = 2;
+
+		float lifeTime = 10;
+
+		virtual float Evaluate(Agent* agent);
+	};	
+	
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	// SEARCH AREA BEHAVIOUR
+	class SearchAreaBehaviour : public Behaviour
+	{
+	private:
+		float radius = 5.0f;
+	public:
+		SearchAreaBehaviour(float r) {
+			radius = r;
+			name = "Search";
+		};
+		virtual void Enter(Agent* agent);
+		virtual void Update(Agent* agent, float deltaTime);
+		virtual void Exit(Agent* agent) { 
+			isFinished = false;
+			lifeTime = 10;
+		};
+
+		Vector2 searchArea;
+
+
+		float cooldown = 2;
+		float cooldownCount = 2;
 
 		float lifeTime = 10;
 

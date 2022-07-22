@@ -34,6 +34,25 @@ namespace Conditions {
         virtual bool IsTrue(Agent* agent, float deltaTime);
     };
 
+    class SeeSuspiciousCondition : public Condition
+    {
+    private:
+        float viewDistance;
+        float viewAngle;
+
+        float viewTime;
+        float viewTimeCount;
+
+        bool isSuspicious = false;
+
+
+    public:
+        SeeSuspiciousCondition(float vDistance, float vAngle, float vTime) : viewDistance(vDistance), viewAngle(vAngle), viewTime(vTime) {}
+        virtual bool IsTrue(Agent* agent, float deltaTime);
+    };
+
+
+
 }
 
 

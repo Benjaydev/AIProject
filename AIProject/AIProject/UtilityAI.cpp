@@ -33,7 +33,11 @@ void UtilityAI::Update(Agent* agent, float deltaTime)
             weights[i] = eval;
         }
         
-        newBehaviour = m_behaviours[GetIndexOfRandomisedWeights(weights, m_behaviours.size())];
+        int randomIndex = GetIndexOfRandomisedWeights(weights, m_behaviours.size());
+        if (randomIndex >= 0 && randomIndex < m_behaviours.size()) {
+
+            newBehaviour = m_behaviours[randomIndex];
+        }
 
         delete[] weights;
     }
@@ -55,6 +59,7 @@ void UtilityAI::Update(Agent* agent, float deltaTime)
     // Update behaviour
     currentBehaviour->Update(agent, deltaTime);
 
+    name = currentBehaviour->name;
     
 }
 
@@ -91,7 +96,11 @@ int UtilityAI::GetIndexOfRandomisedWeights(float* weights, int n)
         sum += weights[i];
     }
     
-    float randVal = (rand() % (int)(sum * 1000))/1000.0f;
+    if (sum == 0) {
+        return n-1;
+    }
+
+    float randVal = (rand() % (int)(sum * 1000) + 1) / 1000.0f;
     sum = 0;
     // Find the value that pushes sum above random value
     for (int i = 0; i < n; i++) {
@@ -102,6 +111,6 @@ int UtilityAI::GetIndexOfRandomisedWeights(float* weights, int n)
         }
     }
 
-    return n;
+    return n-1;
 }
 

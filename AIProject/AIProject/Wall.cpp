@@ -1,9 +1,9 @@
 #include "Wall.h"
 
-Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rotation, char* textureFileName, int colour, bool shouldTile)
+Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rotation, Texture2D textureFileName, int colour, bool shouldTile)
 {
     // Load image that is one pixel big
-    LoadSprite(textureFileName);
+    CreateSpriteFromTexture(textureFileName);
     // Expand by width and height
     //sprite->texture->width = width;
     //sprite->texture->height = height;
