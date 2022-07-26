@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include <string>
 
+
 class Agent;
 
 namespace Behaviours {
@@ -193,11 +194,79 @@ namespace Behaviours {
 		GoToImportantBehaviour() {
 			name = "GoToImportant";
 		};
+		
+		GoToImportantBehaviour(float chanceOfEvaluate) {
+			name = "GoToImportant";
+			chance = chanceOfEvaluate;
+		};
 		virtual void Enter(Agent* agent);
 		virtual void Update(Agent* agent, float deltaTime);
 		virtual void Exit(Agent* agent) { isFinished = false; };
 
 		bool started = false;
+		float chance = 0.05f;
+
+
+
+		virtual float Evaluate(Agent* agent);
+	};
+	
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	// GO TO TOILET LOCATION BEHAVIOUR
+	class GoToToiletBehaviour : public Behaviour
+	{
+	public:
+		GoToToiletBehaviour() {
+			name = "GoToToilet";
+		};
+		GoToToiletBehaviour(float chanceOfEvaluate) {
+			name = "GoToToilet";
+			chance = chanceOfEvaluate;
+		};
+		virtual void Enter(Agent* agent);
+		virtual void Update(Agent* agent, float deltaTime);
+		virtual void Exit(Agent* agent) { isFinished = false; };
+
+		bool started = false;
+
+		float evalCount = 0;
+
+		float chance = 0.05f;
+
+		float toiletDuration = 15;
+		float toiletDurationCount = 0;
+
+		virtual float Evaluate(Agent* agent);
+	};
+	
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	//------------------------------------------------------------------
+	// DEFEND TARGET BEHAVIOUR
+	class DefendBehaviour : public Behaviour
+	{
+	public:
+		DefendBehaviour(Agent* toDefend) {
+			name = "DefendTarget";
+			agentToDefend = toDefend;
+		};
+	
+
+		virtual void Enter(Agent* agent);
+		virtual void Update(Agent* agent, float deltaTime);
+		virtual void Exit(Agent* agent) { isFinished = false; };
+
+		bool started = false;
+
+
+		float cooldown = .5;
+		float cooldownCount = 0;
+
+		Vector2 lastAgentPosition;
+
+		Agent* agentToDefend;
 
 		virtual float Evaluate(Agent* agent);
 	};

@@ -77,8 +77,7 @@ void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 	}
 	cooldownCount = 0;
 
-	// check if the agent has moved significantly from its last position
-	// if so we want to repath towards it
+	// Check if the agent has moved significantly from its last position
 	Object* target = agent->target;
 
 	Vector2 diff = Vector2Subtract(target->physics->GetPosition(), lastTargetPosition);
@@ -271,8 +270,12 @@ float Behaviours::LingerBehaviour::Evaluate(Agent* agent)
 void Behaviours::GoToImportantBehaviour::Enter(Agent* agent)
 {
 	if (Game::importantLocations.size() > 0) {
+		// Get random important location
 		Vector2 randLoc = Game::importantLocations[rand() % Game::importantLocations.size()];
-		agent->pathAgent->GoToNode(agent->pathAgent->parentGraph->GetClosestNode(randLoc));
+		// Displace in random direction
+		Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f),((rand() % 2000 - 1000) / 1000.0f) };
+		float randDist = rand() % 100;
+		agent->pathAgent->GoToNode(agent->pathAgent->parentGraph->GetClosestNode( Vector2Add(randLoc,Vector2Scale(randDir, randDist) ) ) );
 	}
 
 	isFinished = false;
@@ -287,7 +290,7 @@ void Behaviours::GoToImportantBehaviour::Update(Agent* agent, float deltaTime)
 
 float Behaviours::GoToImportantBehaviour::Evaluate(Agent* agent)
 {
-	return 0.05f;
+	return chance;
 }
 
 
@@ -309,7 +312,7 @@ void Behaviours::SearchAreaBehaviour::Update(Agent* agent, float deltaTime)
 
 			for (int i = 0; gotonode == nullptr && i < 100; i++)
 			{
-				float randomDist = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / radius));
+				float randomDist = rand() % (int)radius;
 
 				// Create random direction from -1 to 1 for x and y
 				Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f),((rand() % 2000 - 1000) / 1000.0f)};
@@ -334,4 +337,89 @@ void Behaviours::SearchAreaBehaviour::Update(Agent* agent, float deltaTime)
 float Behaviours::SearchAreaBehaviour::Evaluate(Agent* agent)
 {
 	return 0.05f;
+}
+
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// GO TO TOILET LOCATION BEHAVIOUR
+void Behaviours::GoToToiletBehaviour::Enter(Agent* agent)
+{
+	if (Game::toiletLocations.size() > 0) {
+		Vector2 randLoc = Game::toiletLocations[rand() % Game::toiletLocations.size()];
+		agent->pathAgent->GoToNode(agent->pathAgent->parentGraph->GetClosestNode(randLoc));
+	}
+	isFinished = false;
+	toiletDurationCount = 0;
+}
+
+
+void Behaviours::GoToToiletBehaviour::Update(Agent* agent, float deltaTime)
+{
+	if (agent->pathAgent->hasFinishedPath) {
+		toiletDurationCount += deltaTime;
+		if (toiletDurationCount >= toiletDuration) {
+			isFinished = true;
+			toiletDurationCount = 0;
+		}
+	}
+	
+}
+
+float Behaviours::GoToToiletBehaviour::Evaluate(Agent* agent)
+{
+	return chance;
+}
+
+
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
+// DEFEND TARGET BEHAVIOUR
+void Behaviours::DefendBehaviour::Enter(Agent* agent)
+{
+}
+
+void Behaviours::DefendBehaviour::Update(Agent* agent, float deltaTime)
+{
+	if (Evaluate(agent) == 0.0f) {
+		isFinished = true;
+	}
+
+
+	cooldownCount += deltaTime;
+	if (cooldownCount < cooldown && !agent->pathAgent->hasFinishedPath) {
+		return;
+	}
+	cooldownCount = 0;
+
+	// Check if the agent has moved significantly from its last position
+	Agent* target = agentToDefend;
+
+	Vector2 diff = Vector2Subtract(target->pathAgent->ownerPhysics->GetPosition(), lastAgentPosition);
+	float dist = Vector2DotProduct(diff, diff);
+	float cellSize = agent->pathAgent->parentGraph->m_cellSize;
+	if (dist > (cellSize * cellSize))
+	{
+		lastAgentPosition = target->pathAgent->ownerPhysics->GetPosition();
+
+		// Get random point close to defend target
+		Vector2 randDir = { ((rand() % 2000 - 1000) / 1000.0f),((rand() % 2000 - 1000) / 1000.0f) };
+		agent->pathAgent->GoTo(Vector2Add(lastAgentPosition, Vector2Scale(randDir, 100)));
+	}
+}
+
+float Behaviours::DefendBehaviour::Evaluate(Agent* agent)
+{
+
+	if (agentToDefend->currentBehaviour->name == "GoToImportant") {
+		return 1.0f;
+	}
+	else if(agentToDefend->currentBehaviour->name == "GoToToilet") {
+		return 0.0f;
+	}
+	else {
+		return 0.3f;
+	}
+	
 }

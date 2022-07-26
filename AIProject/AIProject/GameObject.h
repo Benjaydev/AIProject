@@ -14,6 +14,8 @@ public:
 	Object* costumeSprite = new Object();
 	Object* weaponSprite = new Object();
 
+	Object* bloodSprite = new Object();
+
 
 
 	static bool areCostumesLoaded;
@@ -21,10 +23,17 @@ public:
 	static Texture2D chefCostume;
 	static Texture2D janitorCostume;
 	static Texture2D securityCostume;
+	static Texture2D targetCostume;
 
 
 	static Texture2D pistolTexture;
+	static Texture2D knifeTexture;
 
+	float resetWeaponCooldown = 0;
+	bool hasResetWeapon = true;
+
+
+	bool isAlive = true;
 
 	bool hasSuspiciousWeapon();
 
@@ -33,7 +42,11 @@ public:
 
 	void SetWeapon(std::string weaponName);
 
+	void Update(float DeltaTime) override;
+
+	virtual void UseWeapon();
 
 
+	virtual void Kill();
 };
 

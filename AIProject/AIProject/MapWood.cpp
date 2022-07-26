@@ -188,8 +188,6 @@ MapWood::MapWood()
 
 
 
-
-
 }
 
 MapWood::~MapWood()

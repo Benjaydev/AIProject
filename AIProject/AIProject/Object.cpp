@@ -53,12 +53,12 @@ void Object::DeleteSelf()
 
 }
 
-void Object::AddToGameWorld() {
+void Object::AddToGameWorld(bool addToFront) {
 	// Remove from game if already added
 	RemoveFromGameWorld();
 
 	// Add to game
-	id = Game::AddObjectToGame(this);
+	id = addToFront ? Game::AddObjectToGameFront(this) : Game::AddObjectToGame(this);
 
 	// Add all children to game world
 	for (int i = 0; i < children.size(); i++) {
@@ -179,6 +179,8 @@ void Object::CreateSpriteFromTexture(Texture2D texture)
 		sprite = new SpriteComponent();
 	}
 	*sprite->texture = texture;
+	sprite->defaultWidth = texture.width;
+	sprite->defaultHeight = texture.height;
 	hasSprite = true;
 	usesReferencedSprite = true;
 }

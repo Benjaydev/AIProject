@@ -3,6 +3,10 @@
 #include "Player.h"
 #include "Pathfinding.h"
 #include "MapWood.h"
+#include "AICivilian.h"
+#include "AITarget.h"
+#include "AISecurityGuard.h"
+#include "AIJanitor.h"
 
 using namespace Pathfinding;
 
@@ -34,7 +38,11 @@ public:
 
 	RectangleCollider* screenRec = new RectangleCollider();
 
+
+	static Agent* eliminationTarget;
 	static std::vector<Vector2> importantLocations;
+	static std::vector<Vector2> toiletLocations;
+	
 
 	static Vector2 screenCenterOffset() {
 		return { (float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2 };
@@ -45,6 +53,12 @@ public:
 	static int lifetimeObjectCount;
 	static int AddObjectToGame(Object* obj) {
 		objects.push_back(obj);
+		lifetimeObjectCount++;
+		// Return count for object id
+		return lifetimeObjectCount;
+	}
+	static int AddObjectToGameFront(Object* obj) {
+		objects.insert(objects.begin(), obj);
 		lifetimeObjectCount++;
 		// Return count for object id
 		return lifetimeObjectCount;

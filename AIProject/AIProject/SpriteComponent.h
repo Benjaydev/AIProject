@@ -22,7 +22,7 @@ public:
 
     void Load(char* filename);
 
-    void SetScale(float scale);
+    void Scale(float scale);
     float GetScale() { return textureScale; }
 
     Vector2 GetCentreOffset() { return { -(texture->width / 2.0f), -(texture->height / 2.0f) }; }

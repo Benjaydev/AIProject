@@ -1,38 +1,35 @@
-#include "AISecurityGuard.h"
+#include "AIJanitor.h"
 #include "Condition.h"
 #include "State.h"
 #include "UtilityAI.h"
 #include "FiniteStateMachine.h"
-#include "Game.h"
 
-AISecurityGuard::AISecurityGuard(NodeGraph* graph) : AIObject(graph)
+AIJanitor::AIJanitor(NodeGraph* graph) : AIObject(graph)
 {
-    SetCostume("Security");
+    SetCostume("Janitor");
 
     InitSprites();
 
-
-    // set up a FSM, we're going to have two states with their own conditions
+    // Set up conditions
     SqrDistanceCondition* furtherThan15 = new SqrDistanceCondition(15.0f * AIAgent->pathAgent->parentGraph->m_cellSize, false);
     SeeSuspiciousCondition* seesSuspiciousTarget = new SeeSuspiciousCondition(400, 45, 1);
 
+    // Create utility behaviours
     UtilityAI* utilityUnAlert = new UtilityAI();
-    utilityUnAlert->AddBehaviour(new GoToImportantBehaviour());
-    utilityUnAlert->AddBehaviour(new LingerBehaviour(50));
-    utilityUnAlert->AddBehaviour(new DefendBehaviour(Game::eliminationTarget));
+    //utilityUnAlert->AddBehaviour(new GoToImportantBehaviour());
+    utilityUnAlert->AddBehaviour(new LingerBehaviour(100));
+    utilityUnAlert->AddBehaviour(new GoToImportantBehaviour(0.05));
 
     UtilityAI* utilityAlert = new UtilityAI();
-    utilityAlert->AddBehaviour(new FollowTargetBehaviour(10));
-    utilityAlert->AddBehaviour(new SearchAreaBehaviour(200));
+    utilityAlert->AddBehaviour(new FleeTargetBehaviour(20));
 
-    // register these states with the FSM, so its responsible for deleting them now
+    // Add behaviour to fsm
     State* UnAlertState = new State(utilityUnAlert);
     State* AlertState = new State(utilityAlert);
 
     UnAlertState->AddTransition(seesSuspiciousTarget, AlertState);
     //AlertState->AddTransition(furtherThan15, UnAlertState);
 
-    // make a finite state machine that starts off lingering
     FiniteStateMachine* fsm = new FiniteStateMachine(UnAlertState);
 
     fsm->AddState(UnAlertState);

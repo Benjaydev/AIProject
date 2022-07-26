@@ -14,5 +14,8 @@ public:
 	void Update(float DeltaTime) override;
 	void Draw() override;
 
+	virtual void UseWeapon() override;
+	virtual void Kill() override;
+
 };
 

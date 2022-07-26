@@ -21,6 +21,9 @@ void SpriteComponent::Load(char* filename)
 	// Load image
 	*image = LoadImage(filename);
 	// Create texture
+	if (texture != nullptr) {
+		UnloadTexture(*texture);
+	}
 	*texture = LoadTextureFromImage(*image);
 
 	// Store the original loaded width and height
@@ -29,11 +32,11 @@ void SpriteComponent::Load(char* filename)
 }
 
 
-void SpriteComponent::SetScale(float scale) {
+void SpriteComponent::Scale(float scale) {
 	// Store the scale
 	textureScale = scale;
 
 	// Scale width and height by values
-	texture->width *= scale;
-	texture->height *= scale;
+	texture->width = defaultWidth*scale;
+	texture->height = defaultHeight*scale;
 }

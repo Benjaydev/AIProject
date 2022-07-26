@@ -1,12 +1,11 @@
 #include "Player.h"
-
+#include "Game.h"
 Player::Player() : GameObject()
 {
 	tag = "Player";
 
 	spriteObject->LoadSprite((char*)"Images/Agent74.png");
-	spriteObject->sprite->SetScale(0.5f);
-
+	spriteObject->sprite->Scale(0.5f);
 
 	InitSprites();
 
@@ -17,12 +16,16 @@ Player::Player() : GameObject()
 	physics->deceleration = 10;
 	physics->moveSpeed = 1000;
 	
-
 	AddToGameWorld();
 
 
-
 	camera = Camera2D{ {0, 0}, spriteObject->physics->GetPosition(), 0, 1.0f };
+
+
+
+	// Setup UI
+
+
 }
 
 Player::~Player()
@@ -32,7 +35,7 @@ Player::~Player()
 
 void Player::Update(float DeltaTime)
 {
-	Object::Update(DeltaTime);
+	GameObject::Update(DeltaTime);
 
 	//camera.offset = Vector2Subtract(physics->GetPosition(), camera.target);
 	camera.target = Vector2Subtract(physics->GetPosition(), {(float)GetScreenWidth()/2, (float)GetScreenHeight()/2});
@@ -50,11 +53,38 @@ void Player::Update(float DeltaTime)
 	if (IsKeyDown(KEY_D)) {
 		physics->AccelerateInDirection({ 1, 0 });
 	}
+	// Take costume
+	if (IsKeyPressed(KEY_E)) {
+		for (int i = 0; i < Game::objects.size(); i++) {
+			if (Game::objects[i]->tag == "AI") {
+				// If dead
+				if (!((GameObject*)Game::objects[i])->isAlive && ((GameObject*)Game::objects[i])->costume != "Target") {
+					// Get distance from dead body
+					Vector2 diff = Vector2Subtract(physics->GetPosition(), Game::objects[i]->physics->GetPosition());
+					float dist = Vector2DotProduct(diff, diff);
+
+					if (dist <= (30 * 30)) {
+						// Change costume
+						std::string temp = costume;
+						SetCostume(((GameObject*)Game::objects[i])->costume);
+						((GameObject*)Game::objects[i])->SetCostume(temp);
+					}
+					
+				}
+			}
+		}
+	}
 	if (IsKeyPressed(KEY_ONE)) {
 		SetWeapon("");
 	}
 	if (IsKeyPressed(KEY_TWO)) {
 		SetWeapon("Pistol");
+	}
+	if (IsKeyPressed(KEY_THREE)) {
+		SetWeapon("Knife");
+	}
+	if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+		UseWeapon();
 	}
 
 	
@@ -73,4 +103,26 @@ void Player::Update(float DeltaTime)
 void Player::Draw()
 {
 	Object::Draw();
+}
+
+void Player::UseWeapon()
+{
+	GameObject::UseWeapon();
+
+	if (weapon == "Knife") {
+		CircleCollider* knifeCollider = new CircleCollider();
+		Hit out;
+		knifeCollider->center = Vector2Add(physics->GetPosition(), Vector2Scale(physics->GetFacingDirection(), 10));
+		knifeCollider->SetDiameter(45);
+		for (int i = 0; i < AIObject::WorldAIInstances.size(); i++) {
+			if (knifeCollider->Overlaps(AIObject::WorldAIInstances[i]->physics->collider, { 0,0,0 }, { 0,0,0 }, out)) {
+				AIObject::WorldAIInstances[i]->Kill();
+			}
+		}
+		delete knifeCollider;
+	}
+}
+
+void Player::Kill() {
+	GameObject::Kill();
 }

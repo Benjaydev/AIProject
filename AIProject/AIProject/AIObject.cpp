@@ -41,7 +41,7 @@ void AIObject::CreateAIAgent()
 
 void AIObject::Update(float DeltaTime)
 {
-    Object::Update(DeltaTime);
+    GameObject::Update(DeltaTime);
 	AIAgent->Update(DeltaTime);
 
 }
@@ -50,4 +50,16 @@ void AIObject::Draw()
 {
     Object::Draw();
 	AIAgent->Draw();
+}
+
+void AIObject::UseWeapon()
+{
+	GameObject::UseWeapon();
+}
+
+void AIObject::Kill()
+{
+	GameObject::Kill();
+	AIAgent->active = false;
+	std::cout << "Dead" << std::endl;
 }

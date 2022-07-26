@@ -33,6 +33,7 @@ public:
 
     PathAgent* pathAgent;
     Object* target;
+    bool active = true;
 
     Behaviour* currentBehaviour;
     Color m_colour = ORANGE;

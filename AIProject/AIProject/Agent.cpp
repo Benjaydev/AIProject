@@ -14,25 +14,27 @@ Agent::Agent(Behaviour* _behaviour)
 
 void Agent::Update(float deltaTime)
 {
-
-
-
-    if (currentBehaviour != nullptr) {
-        currentBehaviour->Update(this, deltaTime);
+    if (active) {
+        if (currentBehaviour != nullptr) {
+            currentBehaviour->Update(this, deltaTime);
+        }
+        pathAgent->Update(deltaTime);
     }
-    pathAgent->Update(deltaTime);
+
+    
 }
 
 void Agent::Draw()
 {
-    pathAgent->DrawPath();
-    if (currentBehaviour != nullptr) {
-        currentBehaviour->Draw(this);
-    }
+    if (active) {
+        pathAgent->DrawPath();
+        if (currentBehaviour != nullptr) {
+            currentBehaviour->Draw(this);
+        }
 
-    Vector2 pos = pathAgent->ownerPhysics->GetPosition();
-    DrawCircle((int)pos.x, (int)pos.y, 8 * (pathAgent->GetParentCellSize() / 50), m_colour);
-    
+        Vector2 pos = pathAgent->ownerPhysics->GetPosition();
+        DrawCircle((int)pos.x, (int)pos.y, 8 * (pathAgent->GetParentCellSize() / 50), m_colour);
+    }
 }
 
 void Agent::SetBehaviour(Behaviour* behaviour)

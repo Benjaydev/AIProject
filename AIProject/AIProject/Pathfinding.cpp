@@ -165,53 +165,45 @@ Path Pathfinding::PostPathSmooth(Path path)
     Path newPath = Path();
     newPath.waypoints.push_back(path.waypoints[0]);
     int k = 0;
-
-
-    // Create colliders for all invalid nodes to be checked against ray
-    std::vector<Collider*> colliders = std::vector<Collider*>();
-    for (int i = 0; i < path.GetParentGraph()->GetGraphSizeInNodes(); i++) {
-        Node* node = path.GetParentGraph()->m_nodes[i];
-        if (node == nullptr) {
-            // Create collider for node
-            CircleCollider* gridCollider = new CircleCollider();
-            gridCollider->center = path.GetParentGraph()->GetWorldPositionAtIndex(i);
-            gridCollider->SetDiameter((path.GetParentGraph()->nodeCollideCheckSize/1.5f) * path.GetParentGraph()->m_cellSize);
-            colliders.push_back(gridCollider);
-        }
-    }
-    // There are no colliders, so start can go straight to end
-    if (colliders.size() == 0) {
-        newPath.waypoints.push_back(path.waypoints[path.size() - 1]);
-        return newPath;
-    }
-    
+    int invalidNodeCount = 0;
 
     // Search each node starting from the second
     for (int i = 1; i < path.size()-1; i++) {
         // Find difference between the starting node (k) and the node being checked (i+1)
         Vector2 diff = Vector2Subtract(path.waypoints[i + 1]->WorldPosition(), newPath.waypoints[k]->WorldPosition());
 
+
         // Create ray collider from start to check node
         RayCollider* ray = new RayCollider(newPath.waypoints[k]->WorldPosition(), Vector2Normalize(diff), Vector2Length(diff));
         Hit out;
 
-        // Check each collidable object
-        for (int j = 0; j < colliders.size(); j++) {       
+        // Create collider for nodes
+        CircleCollider* gridCollider = new CircleCollider();
+        gridCollider->SetDiameter((path.GetParentGraph()->nodeCollideCheckSize / 1.5f) * path.GetParentGraph()->m_cellSize);
+
+        // Create colliders for all invalid nodes to be checked against ray
+        for (int j = 0; j < path.GetParentGraph()->m_invalidNodes.size(); j++) {
+            invalidNodeCount++;
+            // Set collider position at world position of invalid node
+            gridCollider->center = path.GetParentGraph()->GetWorldPositionAtIndex(path.GetParentGraph()->m_invalidNodes[j]);
             // If there is a collision
-            if (ray->Overlaps(colliders[j], out)) {
+            if (ray->Overlaps(gridCollider, out)) {
                 // Increase the starting node
                 k++;
                 // Add the node before the check node (Because k cannot reach i+1, so it must keep i)
                 newPath.waypoints.push_back(path.waypoints[i]);
             }
-            
             // No collision, so start node stays at same place, and the next node will be checked
         }
+
+        // If there were no invalid nodes, return original straight path start to finish
+        if (invalidNodeCount == 0) {
+            newPath.waypoints.push_back(path.waypoints[path.size() - 1]);
+            return newPath;
+        }
+
         delete ray;
     }
-
-    for (Collider* col : colliders)
-        delete col;
 
     // Add final node
     newPath.waypoints.push_back(path.waypoints[path.size()-1]);
@@ -251,6 +243,7 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
     m_height = dimensions.y / cellSize;
     m_cellSize = cellSize;
     m_nodes = new Node * [m_width * m_height];
+    m_invalidNodes.clear();
     obstacleTag = collideTag;
     worldOffset = WorldOffset;
     nodeCollideCheckSize = collideSize;
@@ -288,8 +281,15 @@ void Pathfinding::NodeGraph::GenerateGrid(Vector2 dimensions, int cellSize, std:
                 }
             }
 
-            // Node is null if it collidd
-            m_nodes[x + m_width * y] = hasHit ? nullptr : new Node(x, y, this);
+            // Node is null if it collided
+            if (hasHit) {
+                m_nodes[x + m_width * y] = nullptr;
+                m_invalidNodes.push_back(x + m_width * y);
+            }
+            else {
+                m_nodes[x + m_width * y] = new Node(x, y, this);
+            }
+            
 
             delete gridCollider;
             
@@ -353,7 +353,7 @@ void Pathfinding::NodeGraph::Draw()
             Node* node = GetNode(x, y);
             if (node == nullptr)
             {
-                DrawCircle((int)((x+0.5) * m_cellSize)+worldOffset.x, (int)((y+0.5) * m_cellSize)+ worldOffset.y, (int)m_cellSize / 10, RED);
+                DrawCircle((int)((x+0.5) * m_cellSize)+worldOffset.x, (int)((y+0.5) * m_cellSize)+ worldOffset.y, ((int)m_cellSize / 10), RED);
             }
             else
             {
@@ -457,7 +457,7 @@ void Pathfinding::PathAgent::GeneratePath(Node* startNode, Node* endNode)
 
     // Generate path
     Path path = AStarGenerate(startNode, endNode);
-    path = PostPathSmooth(path);
+    //path = PostPathSmooth(path);
 
     currentlyGeneratingPath = false;
 

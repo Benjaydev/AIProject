@@ -21,5 +21,7 @@ public:
 	int AIInstanceID = 0;
 	static std::vector<AIObject*> WorldAIInstances;
 
+	virtual void UseWeapon() override;
+	virtual void Kill() override;
 };
 

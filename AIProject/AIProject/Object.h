@@ -34,7 +34,7 @@ public:
 	PhysicsComponent* physics = new PhysicsComponent();
 	
 	// World functions
-	void AddToGameWorld();
+	void AddToGameWorld(bool addToFront = false);
 	void RemoveFromGameWorld();
 	void DeleteSelf();
 

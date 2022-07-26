@@ -128,6 +128,7 @@ namespace Pathfinding
         float nodeCollideCheckSize = 2.0f;
 
         Node** m_nodes;
+        std::vector<int> m_invalidNodes;
 
         std::string obstacleTag = "";
 
@@ -186,7 +187,7 @@ namespace Pathfinding
         return 0;
     }
 
-    static float(*DefaultHeuristic)(Node*, Node*) = DistanceHeuristic;
+    static float(*DefaultHeuristic)(Node*, Node*) = DiagonalDistance;
 
 
      Path DijkstrasGenerate(Node* startNode, Node* endNode);

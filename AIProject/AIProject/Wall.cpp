@@ -8,7 +8,7 @@ Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rot
     //sprite->texture->width = width;
     //sprite->texture->height = height;
     sprite->tiling = { (float)tileWidth, (float)tileHeight };
-    sprite->SetScale(scale);
+    sprite->Scale(scale);
     sprite->tiledSpriteRotation = rotation;
     sprite->shouldTile = shouldTile;
 
