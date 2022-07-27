@@ -12,6 +12,7 @@ public:
     {
         Condition* condition;
         State* targetState;
+        bool ifConditionIs = true;
     };
 private:
     std::vector<Behaviour*> m_behaviours;
@@ -29,7 +30,7 @@ public:
 
     virtual void Draw(Agent* agent);
 
-    void AddTransition(Condition* condition, State* state);
+    void AddTransition(Condition* condition, State* state, bool ifConditionIs = true);
 
 
     std::string GetBehaviourName(int index) {

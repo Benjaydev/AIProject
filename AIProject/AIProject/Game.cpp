@@ -100,7 +100,6 @@ void Game::Start()
         }
         if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
             Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), player->camera);
-            std::cout << mousePos.x << ", " << mousePos.y << std::endl;
             player->physics->SetPosition(mousePos);
         }
         
@@ -158,7 +157,6 @@ void Game::Update() {
     WorldBorders.z = max.x;
     WorldBorders.w = max.y;
 
-
     for (int i = 0; i < objects.size(); i++) {
 
         objects[i]->Update(DeltaTime);
@@ -177,7 +175,7 @@ void Game::Draw() {
 
 
     Vector2 pos = GetScreenToWorld2D({0, 0}, player->camera);
-    DrawFPS(pos.x, pos.y);
+
 
     for (int i = 0; i < objects.size(); i++) {
         if (objects[i]->isOnScreen) {
@@ -188,7 +186,8 @@ void Game::Draw() {
     if (DebugActive) {
         nodeGraph->Draw();
     }
-    
+
+    DrawFPS(pos.x, pos.y);
     EndMode2D();
     EndDrawing();
 }

@@ -8,7 +8,8 @@ class Agent
 {
 public:
     Agent();
-    Agent(Behaviour* _behaviour);
+    Agent(Object* owningGameObject);
+    Agent(Behaviour* _behaviour, Object* owningGameObject);
     ~Agent() { 
         delete currentBehaviour;
         delete pathAgent;
@@ -33,6 +34,7 @@ public:
 
     PathAgent* pathAgent;
     Object* target;
+    Object* owner;
     bool active = true;
 
     Behaviour* currentBehaviour;

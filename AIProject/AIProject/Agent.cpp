@@ -6,8 +6,14 @@ Agent::Agent()
 
 }
 
-Agent::Agent(Behaviour* _behaviour)
+Agent::Agent(Object* owningGameObject)
 {
+    owner = owningGameObject;
+}
+
+Agent::Agent(Behaviour* _behaviour, Object* owningGameObject)
+{
+    owner = owningGameObject;
 	currentBehaviour = _behaviour;
     currentBehaviour->Enter(this);
 }

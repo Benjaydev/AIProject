@@ -1,4 +1,5 @@
 #include "GameObject.h"
+#include "Bullet.h"
 
 
 Texture2D GameObject::chefCostume;
@@ -25,6 +26,8 @@ GameObject::GameObject()
 	bloodSprite->physics->SetRotation(-90 * DEG2RAD);
 	bloodSprite->physics->SetPosition(-bloodSprite->sprite->GetCentreOffset().x, bloodSprite->sprite->GetCentreOffset().y);
 	bloodSprite->hasSprite = false;
+
+	physics->SetRotation((rand() % 360) * DEG2RAD);
 }
 
 GameObject::~GameObject()
@@ -142,7 +145,7 @@ void GameObject::SetWeapon(std::string weaponName) {
 void GameObject::UseWeapon()
 {
 	if (weapon == "Pistol") {
-
+		new Bullet(physics->GetPosition(), physics->GetFacingDirection());
 	}
 	else if (weapon == "Knife") {
 		hasResetWeapon = false;

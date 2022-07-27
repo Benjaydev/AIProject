@@ -31,6 +31,8 @@ public:
 	Player* player;
 
 
+
+
 	
 	MapWood* map1;
 	Map* currentMap;

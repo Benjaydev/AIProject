@@ -15,6 +15,8 @@ public:
 	void CreateAIAgent();
 	Agent* AIAgent;
 
+	std::string targetsLastSeenCostume = "";
+
 	void Update(float DeltaTime) override;
 	void Draw() override;
 

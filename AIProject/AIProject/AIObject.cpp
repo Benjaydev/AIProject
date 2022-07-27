@@ -30,12 +30,12 @@ AIObject::~AIObject()
 
 void AIObject::CreateAIAgent(Behaviour* beaviour)
 {
-	AIAgent = new Agent(beaviour);
+	AIAgent = new Agent(beaviour, this);
 	AIAgent->CreatePathAgent(physics);
 }
 void AIObject::CreateAIAgent()
 {
-	AIAgent = new Agent();
+	AIAgent = new Agent(this);
 	AIAgent->CreatePathAgent(physics);
 }
 
@@ -61,5 +61,4 @@ void AIObject::Kill()
 {
 	GameObject::Kill();
 	AIAgent->active = false;
-	std::cout << "Dead" << std::endl;
 }

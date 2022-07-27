@@ -78,11 +78,9 @@ void Player::Update(float DeltaTime)
 		SetWeapon("");
 	}
 	if (IsKeyPressed(KEY_TWO)) {
-		SetWeapon("Pistol");
-	}
-	if (IsKeyPressed(KEY_THREE)) {
 		SetWeapon("Knife");
 	}
+
 	if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
 		UseWeapon();
 	}

@@ -1,12 +1,11 @@
 #include "Wall.h"
 
-Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rotation, Texture2D textureFileName, int colour, bool shouldTile)
+Wall::Wall(float x, float y, int tileWidth, int tileHeight, int scale, float rotation, Texture2D texture, int colour, bool shouldTile)
 {
     // Load image that is one pixel big
-    CreateSpriteFromTexture(textureFileName);
+    CreateSpriteFromTexture(texture);
     // Expand by width and height
-    //sprite->texture->width = width;
-    //sprite->texture->height = height;
+
     sprite->tiling = { (float)tileWidth, (float)tileHeight };
     sprite->Scale(scale);
     sprite->tiledSpriteRotation = rotation;

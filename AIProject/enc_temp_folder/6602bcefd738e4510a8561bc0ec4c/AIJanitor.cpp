@@ -15,9 +15,9 @@ AIJanitor::AIJanitor(NodeGraph* graph) : AIObject(graph)
     NearUrgantSituationCondition* nearUrgentSituation = new NearUrgantSituationCondition(400);
 
     UtilityAI* utilityUnAlert = new UtilityAI();
-    utilityUnAlert->AddBehaviour(new GoToImportantBehaviour(0.1f));
+    utilityUnAlert->AddBehaviour(new GoToImportantBehaviour(0.2f));
     utilityUnAlert->AddBehaviour(new LingerBehaviour(200));
-    utilityUnAlert->AddBehaviour(new GoToToiletBehaviour(0.5));
+    utilityUnAlert->AddBehaviour(new GoToToiletBehaviour(0.1));
 
     UtilityAI* utilityAlert = new UtilityAI();
     utilityAlert->AddBehaviour(new GoToImportantBehaviour(0.2f));

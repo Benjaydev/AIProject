@@ -19,7 +19,7 @@ void FiniteStateMachine::Update(Agent* agent, float deltaTime)
     // check the current state's transitions
     for (State::Transition t : m_currentState->GetTransitions())
     {
-        if (t.condition->IsTrue(agent, deltaTime)) {
+        if (t.condition->IsTrue(agent, deltaTime) == t.ifConditionIs) {
             newState = t.targetState;
         }
             

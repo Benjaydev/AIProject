@@ -138,12 +138,9 @@ namespace Behaviours {
 			radius = r;
 			name = "Linger";
 		};
-		virtual void Enter(Agent* agent) {};
+		virtual void Enter(Agent* agent);
 		virtual void Update(Agent* agent, float deltaTime);
-		virtual void Exit(Agent* agent) { 
-			isFinished = false;
-			lifeTime = 10;
-		};
+		virtual void Exit(Agent* agent){};
 
 		float cooldown = 2;
 		float cooldownCount = 2;

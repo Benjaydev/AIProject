@@ -37,10 +37,11 @@ void State::Draw(Agent* agent)
     }
 }
 
-void State::AddTransition(Condition* condition, State* state)
+void State::AddTransition(Condition* condition, State* state, bool ifConditionIs)
 {
     Transition trans = Transition();
     trans.condition = condition;
     trans.targetState = state;
+    trans.ifConditionIs = ifConditionIs;
     m_transitions.push_back(trans);
 }

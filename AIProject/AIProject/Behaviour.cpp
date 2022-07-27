@@ -67,10 +67,6 @@ float Behaviours::GoToPointBehaviour::Evaluate(Agent* agent)
 // FOLLOW TARGET BEHAVIOUR
 void FollowTargetBehaviour::Update(Agent* agent, float deltaTime)
 {
-	if (Evaluate(agent) == 0) {
-		isFinished = true;
-	}
-
 	cooldownCount += deltaTime;
 	if (cooldownCount < cooldown && !agent->pathAgent->hasFinishedPath) {
 		return;
@@ -216,6 +212,12 @@ void SelectorBehaviour::SetBehaviour(Behaviour* b, Agent* agent)
 	}
 }
 
+
+void Behaviours::LingerBehaviour::Enter(Agent* agent)
+{
+	isFinished = false;
+	lifeTime = 10;
+}
 
 //------------------------------------------------------------------
 //------------------------------------------------------------------

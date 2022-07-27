@@ -26,11 +26,11 @@ namespace Conditions {
         float viewDistance;
         float viewAngle;
 
-        float viewTime;
-        float viewTimeCount;
+        float lastSeenCountdown;
+        float lastSeenCountdownCount;
 
     public:
-        SeeCondition(float vDistance, float vAngle, float vTime) : viewDistance(vDistance), viewAngle(vAngle), viewTime(vTime) {}
+        SeeCondition(float vDistance, float vAngle, float lastSeenCooldown) : viewDistance(vDistance), viewAngle(vAngle), lastSeenCountdown(lastSeenCooldown) {}
         virtual bool IsTrue(Agent* agent, float deltaTime);
     };
 
@@ -45,9 +45,22 @@ namespace Conditions {
 
         bool isSuspicious = false;
 
-
     public:
         SeeSuspiciousCondition(float vDistance, float vAngle, float vTime) : viewDistance(vDistance), viewAngle(vAngle), viewTime(vTime) {}
+        virtual bool IsTrue(Agent* agent, float deltaTime);
+    };
+    
+    
+    class NearUrgantSituationCondition : public Condition
+    {
+    private:
+        float viewDistance;
+
+        bool isSuspicious = false;
+
+
+    public:
+        NearUrgantSituationCondition(float vDistance) : viewDistance(vDistance) {}
         virtual bool IsTrue(Agent* agent, float deltaTime);
     };
 

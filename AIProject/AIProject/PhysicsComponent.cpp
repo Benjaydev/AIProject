@@ -326,6 +326,23 @@ void PhysicsComponent::GlobalCollisionCheck(float DeltaTime, bool shouldCullOffS
 
 				}
 
+				if (check->tag == "Obstacle" && against->tag == "Bullet") {
+					against->DeleteSelf();
+				}
+				if (check->tag == "Bullet" && against->tag == "Obstacle") {
+					check->DeleteSelf();
+				}
+				
+				if ((check->tag == "Player") && against->tag == "Bullet") {
+					against->DeleteSelf();
+					((GameObject*)check)->Kill();
+				}
+				
+				if (check->tag == "Bullet" && against->tag == "Player") {
+					check->DeleteSelf();
+					((GameObject*)against)->Kill();
+				}
+
 
 			}
 		}
